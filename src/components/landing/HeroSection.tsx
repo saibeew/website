@@ -7,7 +7,6 @@ import Magnetic from "../ui/Magnetic";
 import { slideUp, staggerContainer, hologramFlicker } from "@/lib/animations";
 import {
   ArrowRight,
-  Zap,
   Activity,
   TrendingUp,
   ShieldCheck,
@@ -35,21 +34,20 @@ function useAnimatedCount(target: number, duration = 1.8) {
     const controls = animate(count, target, { duration });
     const unsub = rounded.on("change", setDisplay);
     return () => { controls.stop(); unsub(); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [target, count, duration, rounded]);
   return display;
 }
 
 /* ─── Live stats bar ────────────────────────────────────────────── */
-function StatsBar() {
+function StatsBar({ seatsLeft }: { seatsLeft: number }) {
   const winRate   = useAnimatedCount(74);
-  const seatsLeft = useAnimatedCount(14);
+  const seatsValue = useAnimatedCount(seatsLeft);
   const years     = useAnimatedCount(8);
 
   const stats = [
     { value: `${winRate}%`,    label: "Historical Win Rate" },
     { value: `${years}yr`,     label: "Backtest Depth" },
-    { value: `${seatsLeft}`,   label: "Beta Seats Left", hot: true },
+    { value: `${seatsValue}`,   label: "Beta Seats Left", hot: true },
   ];
 
   return (
@@ -74,6 +72,34 @@ function StatsBar() {
 
 /* ─── Hero ──────────────────────────────────────────────────────── */
 export default function HeroSection() {
+  const [seats, setSeats] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("beta_seats_left");
+      if (saved) {
+        const parsed = parseInt(saved, 10);
+        return isNaN(parsed) || parsed <= 3 ? 3 : parsed;
+      }
+      localStorage.setItem("beta_seats_left", "14");
+    }
+    return 14;
+  });
+
+  useEffect(() => {
+    // Ticks down dynamically every 45 seconds with 30% probability, minimum of 3
+    const interval = setInterval(() => {
+      setSeats((prev) => {
+        if (prev > 3 && Math.random() > 0.7) {
+          const next = prev - 1;
+          localStorage.setItem("beta_seats_left", next.toString());
+          return next;
+        }
+        return prev;
+      });
+    }, 45000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const handleCTAClick = () => {
     document.getElementById("register")?.scrollIntoView({ behavior: "smooth" });
   };
@@ -101,7 +127,7 @@ export default function HeroSection() {
           >
             <span className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
             <Users size={13} />
-            <span>Only 14 beta seats remaining</span>
+            <span>Only {seats} beta seats remaining</span>
             <Clock size={13} className="ml-0.5" />
           </motion.div>
 
@@ -160,7 +186,7 @@ export default function HeroSection() {
           </ul>
 
           {/* Animated proof stats */}
-          <StatsBar />
+          <StatsBar seatsLeft={seats} />
         </motion.div>
 
         {/* ── Right: Visuals ──────────────────────────────────── */}

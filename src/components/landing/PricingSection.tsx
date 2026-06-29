@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import GlassCard from "../ui/GlassCard";
 import NeonButton from "../ui/NeonButton";
 import { Check } from "lucide-react";
+import Link from "next/link";
 
 const PLANS = [
   {
@@ -62,7 +63,9 @@ export default function PricingSection() {
                   ))}
                 </ul>
 
-                <NeonButton variant="primary" style={{ width: "100%" }}>Select Plan</NeonButton>
+                <Link href={`/register?plan=${plan.name.toLowerCase()}`} className="w-full mt-auto block">
+                  <NeonButton variant="primary" fullWidth>Select Plan</NeonButton>
+                </Link>
               </GlassCard>
             </motion.div>
           ))}

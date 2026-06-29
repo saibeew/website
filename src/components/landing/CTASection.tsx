@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import NeonButton from "../ui/NeonButton";
 import Magnetic from "../ui/Magnetic";
+import Link from "next/link";
 
 export default function CTASection() {
   return (
@@ -24,16 +25,20 @@ export default function CTASection() {
          </p>
          
          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Magnetic>
-               <NeonButton size="lg" variant="primary" className="min-w-[200px] text-lg">
-                  Get Early Access
-               </NeonButton>
-            </Magnetic>
-            <Magnetic>
-               <NeonButton size="lg" variant="secondary" className="min-w-[200px] text-lg">
-                  View Demo
-               </NeonButton>
-            </Magnetic>
+            <Link href="/register">
+               <Magnetic>
+                  <NeonButton size="lg" variant="primary" className="min-w-[200px] text-lg">
+                     Get Early Access
+                  </NeonButton>
+               </Magnetic>
+            </Link>
+            <Link href="/dashboard">
+               <Magnetic>
+                  <NeonButton size="lg" variant="secondary" className="min-w-[200px] text-lg">
+                     View Demo
+                  </NeonButton>
+               </Magnetic>
+            </Link>
          </div>
       </motion.div>
     </section>
