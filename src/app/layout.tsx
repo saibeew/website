@@ -13,19 +13,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BEWE - Be Wealthy | AI Algorithmic Trading Platform",
+  title: "BEEW - Be Wealthy | AI Algorithmic Trading Platform",
   description: "The world's most advanced AI-powered trading ecosystem. Automate crypto, stocks, and forex trading with institutional-grade algorithms.",
   keywords: ["AI trading", "algo trading", "automated crypto trading", "trading bot", "investment automation", "fintech"],
   openGraph: {
-    title: "BEWE - Be Wealthy | AI Algorithmic Trading",
+    title: "BEEW - Be Wealthy | AI Algorithmic Trading",
     description: "Automate your wealth generation with AI-driven strategies.",
     type: "website",
     locale: "en_US",
-    siteName: "BEWE",
+    siteName: "BEEW",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BEWE - Be Wealthy",
+    title: "BEEW - Be Wealthy",
     description: "The future of algorithmic trading is here.",
   },
 };

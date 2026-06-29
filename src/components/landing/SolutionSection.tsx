@@ -28,7 +28,7 @@ export default function SolutionSection() {
           </h2>
           
           <p className="text-text-muted text-lg mb-8 leading-relaxed">
-            BEWE democratizes hedge-fund technology. We replaced complex coding with visual nodes, and emotional trading with cold, hard AI logic.
+            BEEW democratizes hedge-fund technology. We replaced complex coding with visual nodes, and emotional trading with cold, hard AI logic.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
@@ -75,7 +75,7 @@ export default function SolutionSection() {
                       <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                       <div className="w-3 h-3 rounded-full bg-green-500/50" />
                    </div>
-                   <div className="text-xs text-text-muted">BEWE Strategy Engine.exe</div>
+                   <div className="text-xs text-text-muted">BEEW Strategy Engine.exe</div>
                 </div>
                 <div className="p-8 relative min-h-[400px] flex items-center justify-center">
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-secondary/10 to-transparent" />

@@ -1,4 +1,4 @@
--- Script to Clear All Data from BEWE Database
+-- Script to Clear All Data from BEEW Database
 -- Run this in your Supabase SQL Editor to reset the database
 
 -- WARNING: This will delete ALL data from your tables!

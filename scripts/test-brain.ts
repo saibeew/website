@@ -15,7 +15,7 @@ async function runTest() {
         avgLoss: 200
     `;
 
-    console.log("Querying Anti-Gravity AI...");
+    console.log("Querying BEEW AI...");
     const response = await getAiResponse(prompt);
     
     console.log("\n--- BRAIN RESPONSE ---");

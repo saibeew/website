@@ -304,7 +304,7 @@ export const useStore = create<StoreState>((set) => ({
 
     // Notifications Implementation
     notifications: [
-        { id: '1', title: 'System Online', message: 'Anti-Gravity Engines are fully operational.', time: 'Just now', read: false, type: 'success' },
+        { id: '1', title: 'System Online', message: 'BEEW AI Engines are fully operational.', time: 'Just now', read: false, type: 'success' },
         { id: '2', title: 'Market Alert', message: 'High volatility detected in XAUUSD.', time: '2m ago', read: false, type: 'warning' },
         { id: '3', title: 'Trade Executed', message: 'Long BTCUSD closed for +12.5% profit.', time: '1h ago', read: true, type: 'info' },
     ],
@@ -321,10 +321,10 @@ export const useStore = create<StoreState>((set) => ({
     // Live Monitoring
     trades: [],
     terminalLogs: [
-        "Initializing Anti-Gravity Execution Bridge...",
+        "Initializing BEEW Execution Bridge...",
         "Connecting to Global Liquidity Hub (Equinix NY4)...",
         "MetaTrader 4 Core: Link Established.",
-        "AI Model: Gravity-V2.1 Loaded and Running.",
+        "AI Model: BEEW-V2.1 Loaded and Running.",
     ],
     exchangeConnections: [],
     addTrade: (trade) => set((state) => ({

@@ -13,7 +13,7 @@ export default function SubscriptionPage() {
     <div className="max-w-5xl mx-auto space-y-12 py-10">
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
-          Upgrade to Anti-Gravity Pro
+          Upgrade to BEEW Pro
         </h1>
         <p className="text-text-muted max-w-xl mx-auto">
           Unlock the full potential of algorithmic trading with dedicated cloud agents, institutional data feeds, and unrestricted AI access.
@@ -81,7 +81,7 @@ export default function SubscriptionPage() {
              <li className="flex items-center gap-3"><Check size={16} className="text-accent" /> Custom AI Models</li>
              <li className="flex items-center gap-3"><Check size={16} className="text-accent" /> White-Glove Onboarding</li>
           </ul>
-          <button className="w-full py-3 rounded-lg border border-white/10 text-text-muted hover:bg-white/5 transition-colors" onClick={() => alert("Contact Sales: sales@bewe.io")}>
+          <button className="w-full py-3 rounded-lg border border-white/10 text-text-muted hover:bg-white/5 transition-colors" onClick={() => alert("Contact Sales: sales@beew.io")}>
             Contact Sales
           </button>
         </GlassCard>

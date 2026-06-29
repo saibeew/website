@@ -13,9 +13,9 @@ interface Props {
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
   const item = fetchNewsById(Number(id));
-  if (!item) return { title: "Article Not Found | BEWE" };
+  if (!item) return { title: "Article Not Found | BEEW" };
   return {
-    title: `${item.title} | Market Intelligence | BEWE`,
+    title: `${item.title} | Market Intelligence | BEEW`,
     description: item.summary || item.title,
   };
 }

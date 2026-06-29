@@ -18,7 +18,7 @@ const brokers = [
 export default function LoginForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [email, setEmail] = useState("trader@bewe.ai"); // Pre-filled
+    const [email, setEmail] = useState("trader@beew.ai"); // Pre-filled
     const [password, setPassword] = useState("Trade@2025");   // Pre-filled
     const [broker, setBroker] = useState("zerodha");
     const [error, setError] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export default function LoginForm() {
 
         // Simulation
         setTimeout(() => {
-            if (email === "trader@bewe.ai" && password === "Trade@2025") {
+            if (email === "trader@beew.ai" && password === "Trade@2025") {
                  // Success
                  window.location.href = "/dashboard";
             } else {
@@ -65,7 +65,7 @@ export default function LoginForm() {
                          <div className="p-2 rounded-full bg-cyan-500/10 border border-cyan-500/20">
                             <Zap size={20} className="text-cyan-400" />
                          </div>
-                         <span className="text-sm font-mono text-cyan-400 tracking-wider">BEWE ACCESS</span>
+                         <span className="text-sm font-mono text-cyan-400 tracking-wider">BEEW ACCESS</span>
                     </motion.div>
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
                         Welcome Back

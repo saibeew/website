@@ -18,7 +18,7 @@ export default function LandingNavbar() {
           <div className="w-9 h-9 bg-gradient-to-br from-[#0EF2B1] to-[#5B8CFF] rounded-lg flex items-center justify-center font-extrabold text-[#05070A] text-sm group-hover:shadow-[0_0_15px_rgba(14,242,177,0.5)] transition-shadow duration-300">
             BW
           </div>
-          <span className="font-bold text-white text-lg tracking-tighter">BEWE</span>
+          <span className="font-bold text-white text-lg tracking-tighter">BEEW</span>
         </Link>
         
         {/* Links */}

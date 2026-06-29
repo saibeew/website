@@ -21,7 +21,7 @@ export default function CTASection() {
             Ready to <span className="text-primary neon-text">Transcend</span>?
          </h2>
          <p className="text-xl text-text-muted mb-12 max-w-2xl mx-auto">
-            Join 10,000+ traders who have already switched to the BEWE AI ecosystem. Stop guessing, start engineering wealth.
+            Join 10,000+ traders who have already switched to the BEEW AI ecosystem. Stop guessing, start engineering wealth.
          </p>
          
          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">

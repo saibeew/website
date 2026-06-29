@@ -66,7 +66,7 @@ export default function FundamentalsSection() {
           </h2>
           
           <p className="text-text-muted text-lg mb-8 leading-relaxed">
-            Price action is only half the story. BEWE’s NLP engine scans 50,000+ news sources, earnings reports, and social feeds to predict market moves before they happen.
+            Price action is only half the story. BEEW’s NLP engine scans 50,000+ news sources, earnings reports, and social feeds to predict market moves before they happen.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">

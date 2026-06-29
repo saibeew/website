@@ -129,7 +129,7 @@ export default function RegisterPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="w-full bg-[#0d1525]/80 border border-white/5 rounded-xl px-5 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-success/50 focus:ring-1 focus:ring-success/20 transition-all"
-                                    placeholder="trader@bewe.io"
+                                    placeholder="trader@beew.io"
                                     required
                                 />
                             </div>

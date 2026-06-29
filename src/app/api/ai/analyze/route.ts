@@ -10,7 +10,7 @@ export async function POST(req: Request) {
         }
 
         const prompt = `
-            You are an institutional-grade financial analyst "Anti-Gravity AI". 
+            You are an institutional-grade financial analyst "BEEW AI". 
             Analyze the following market data for ${symbol}.
             Context: ${JSON.stringify(context)}
 

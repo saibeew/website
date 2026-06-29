@@ -181,7 +181,7 @@ export default function ProfilePage() {
                                     { title: "Market Alerts", desc: "Get notified when high volatility is detected." },
                                     { title: "Trade Executions", desc: "Receive updates when a strategy opens or closes a trade." },
                                     { title: "Daily Summary", desc: "A daily digest of your portfolio performance." },
-                                    { title: "System Updates", desc: "Important updates regarding the Anti-Gravity engine." }
+                                    { title: "System Updates", desc: "Important updates regarding the BEEW engine." }
                                 ].map((item, i) => (
                                     <div key={i} className="flex items-center justify-between p-4 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
                                         <div>
