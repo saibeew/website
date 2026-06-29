@@ -82,3 +82,13 @@ html, body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 246, 255, 0.5);
 }
+
+/* Animated shimmer gradient for headline */
+@keyframes gradient-pan {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  animation: gradient-pan 4s ease infinite;
+}
