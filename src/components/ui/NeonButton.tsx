@@ -6,6 +6,7 @@ import React from "react";
 interface NeonButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
+  id?: string;
   variant?: "primary" | "secondary" | "accent" | "danger" | "success";
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -18,6 +19,7 @@ interface NeonButtonProps {
 export default function NeonButton({ 
   children, 
   onClick, 
+  id,
   variant = "primary", 
   size = "md",
   className = "",
@@ -51,6 +53,7 @@ export default function NeonButton({
 
   return (
     <motion.button
+      id={id}
       data-magnetic="true"
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${disabledClass} ${className}`}
       onClick={!disabled ? onClick : undefined}

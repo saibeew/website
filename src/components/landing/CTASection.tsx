@@ -6,7 +6,7 @@ import Magnetic from "../ui/Magnetic";
 
 export default function CTASection() {
   return (
-    <section className="py-32 px-6 relative overflow-hidden">
+    <section id="register" className="py-32 px-6 relative overflow-hidden">
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/20 rounded-full blur-[100px] -z-10" />
       
