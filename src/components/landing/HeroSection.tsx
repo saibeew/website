@@ -108,13 +108,10 @@ export default function HeroSection() {
           {/* Headline — outcome first */}
           <h1 className="text-5xl md:text-[4.5rem] leading-[1.08] font-extrabold tracking-tighter">
             <span className="text-white">
-              Stop gambling.<br />
+              Trade with precision.<br />
             </span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0EF2B1] via-[#5B8CFF] to-[#0EF2B1] bg-[length:200%] animate-gradient">
-              Start engineering
-            </span>
-            <span className="text-white">
-              {" "}your trades.
+              Execute with confidence.
             </span>
           </h1>
 
