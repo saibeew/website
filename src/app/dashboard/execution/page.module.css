@@ -1,0 +1,166 @@
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 968px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.columnTitle {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.brokerList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.brokerCard {
+  padding: 20px !important;
+}
+
+.brokerHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.brokerIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.brokerInfo {
+  flex: 1;
+}
+
+.brokerName {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.statusConnected {
+  font-size: 0.75rem;
+  color: var(--color-success);
+}
+
+.statusDisconnected {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.latency {
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0, 246, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.apiKeyInput {
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px 8px 32px;
+}
+
+.apiKeyInput input {
+  background: transparent;
+  border: none;
+  width: 100%;
+  color: var(--color-text-muted);
+  font-family: monospace;
+  outline: none;
+}
+
+.lockIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  opacity: 0.5;
+}
+
+/* Logs */
+.logTerminal {
+  height: 600px;
+  background: #050B14 !important; /* Proper terminal black */
+  font-family: 'Geist Mono', monospace;
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.logHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 12px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.logContent {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logEntry {
+  display: flex;
+  gap: 12px;
+}
+
+.logTime {
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}
+
+.logLevel { font-weight: 700; width: 60px; }
+.INFO { color: var(--color-primary); }
+.WARN { color: var(--color-warning); }
+.SUCCESS { color: var(--color-success); }
+
+.logMsg {
+  color: var(--color-text-main);
+}
+
+.cursor {
+  width: 10px;
+  height: 18px;
+  background: var(--color-primary);
+  animation: blink 1s step-end infinite;
+  margin-top: 8px;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}

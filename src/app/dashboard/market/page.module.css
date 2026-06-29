@@ -1,0 +1,22 @@
+.container {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 24px;
+  height: calc(100vh - 120px); /* Adjust for topbar/padding */
+}
+
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.mainChart {
+  height: 100%;
+}
+
+.sidePanel {
+  height: 100%;
+  overflow-y: auto;
+}

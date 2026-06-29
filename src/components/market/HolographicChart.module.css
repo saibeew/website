@@ -1,0 +1,104 @@
+.chartContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.pairTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-text-main);
+}
+
+.liveTag {
+  font-size: 0.75rem;
+  background: var(--color-danger);
+  padding: 2px 6px;
+  border-radius: 4px;
+  animation: pulse 2s infinite;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.timeBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.timeBtn:hover {
+  color: #fff;
+}
+
+.active {
+  background: var(--color-primary);
+  color: #000 !important;
+  font-weight: 600;
+}
+
+.chartBody {
+  flex: 1;
+  position: relative;
+  min-height: 400px;
+  cursor: crosshair;
+}
+
+.chartSvg {
+  overflow: visible;
+}
+
+.candleGroup {
+  transition: opacity 0.2s;
+}
+.candleGroup:hover {
+  opacity: 1 !important;
+}
+
+.tooltip {
+  position: absolute;
+  background: rgba(13, 21, 37, 0.9);
+  border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 50;
+  transform: translate(-50%, -120%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.tooltipPrice {
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
+.tooltipDate {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}

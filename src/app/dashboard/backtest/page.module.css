@@ -1,0 +1,154 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputGroup label {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 12px;
+  color: var(--color-text-main);
+}
+
+.inputWrapper input,
+.inputWrapper select {
+  background: transparent;
+  border: none;
+  color: inherit;
+  width: 100%;
+  padding: 0;
+  outline: none;
+  font-size: 0.95rem;
+}
+
+.inputWrapper select option {
+  background: var(--color-surface);
+}
+
+.runBtn {
+  width: 100%;
+}
+
+/* Results */
+.resultsPanel {
+  min-height: 200px;
+}
+
+.resultsCard {
+  border-color: var(--color-success) !important;
+}
+
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2rem;
+}
+
+.timestamp {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 2rem;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric span:first-child {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.value { font-size: 1.5rem; font-weight: 700; }
+.successValue { font-size: 1.5rem; font-weight: 700; color: var(--color-success); }
+.dangerValue { font-size: 1.5rem; font-weight: 700; color: var(--color-danger); }
+
+.chartPlaceholder {
+  height: 200px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+}
+
+.chartLine {
+  width: 100%;
+  height: 100%;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: var(--color-text-muted);
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+}
+
+.emptyIcon {
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

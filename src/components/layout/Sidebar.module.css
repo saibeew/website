@@ -1,0 +1,133 @@
+.sidebar {
+  position: fixed;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  height: auto;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+}
+
+.dock {
+  border-radius: 40px !important;
+  padding: 32px 16px !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  background: rgba(13, 21, 37, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.2), 
+    0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.logo {
+  margin-bottom: 1rem;
+}
+
+.logoIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #fff;
+  font-size: 0.9rem;
+  box-shadow: 0 0 20px rgba(0, 246, 255, 0.3);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.navItem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  color: var(--color-text-muted);
+  transition: all 0.3s ease;
+  border-radius: 14px;
+}
+
+.navItem:hover {
+  color: var(--color-text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.active {
+  color: var(--color-primary);
+}
+
+.iconWrapper {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tooltip on Hover */
+.tooltip {
+  position: absolute;
+  left: 70px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  white-space: nowrap;
+}
+
+.navItem:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+  left: 60px;
+}
+
+.activeGlow {
+  position: absolute;
+  inset: -12px;
+  background: radial-gradient(circle, rgba(0, 246, 255, 0.2) 0%, transparent 70%);
+  border-radius: 50%;
+  z-index: -1;
+  filter: blur(5px);
+}
+
+.footer {
+  margin-top: auto;
+}
+
+.logoutBtn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-danger);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.logoutBtn:hover {
+  opacity: 1;
+}

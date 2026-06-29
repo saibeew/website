@@ -1,0 +1,134 @@
+.widget {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.moreBtn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.moreBtn:hover {
+  color: var(--color-text-main);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.listHeader {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  padding: 0 12px 12px 12px;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  margin-bottom: 8px;
+}
+
+.alignRight {
+  text-align: right;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.assetInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.symbolIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.symbol {
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+
+.name {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.priceCell {
+  text-align: right;
+  font-family: 'Geist Mono', monospace;
+  font-weight: 600;
+}
+
+.changeCell {
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.positive {
+  color: var(--color-success);
+  text-shadow: 0 0 10px rgba(0, 255, 163, 0.3);
+}
+
+.negative {
+  color: var(--color-danger);
+  text-shadow: 0 0 10px rgba(255, 77, 77, 0.3);
+}
+
+.chartCell {
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0.8;
+}
+
+.sparkline {
+  max-width: 80px;
+  overflow: visible;
+  filter: drop-shadow(0 0 2px currentColor);
+}

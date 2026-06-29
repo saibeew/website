@@ -1,0 +1,22 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.contentWrapper {
+  flex: 1;
+  margin-left: 100px; /* Space for Sidebar dock */
+  display: flex;
+  flex-direction: column;
+}
+
+.pageContent {
+  padding: 0 40px 40px 40px;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .contentWrapper {
+    margin-left: 0; /* Mobile adjustment later */
+  }
+}

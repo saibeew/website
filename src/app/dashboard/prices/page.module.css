@@ -1,0 +1,79 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.updateTag {
+  font-size: 0.75rem;
+  color: var(--color-success);
+  background: rgba(0, 255, 163, 0.1);
+  padding: 4px 10px;
+  border-radius: 12px;
+  animation: pulse 2s infinite;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  padding: 16px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.table td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+  color: var(--color-text-main);
+  font-size: 0.95rem;
+}
+
+.table tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.rank { width: 60px; color: var(--color-text-muted); }
+
+.asset {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.symbolIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.symbol { font-weight: 700; }
+.name { font-size: 0.8rem; color: var(--color-text-muted); }
+
+.price { font-family: 'Geist Mono', monospace; font-weight: 600; }
+
+.pos { color: var(--color-success); }
+.neg { color: var(--color-danger); }
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
