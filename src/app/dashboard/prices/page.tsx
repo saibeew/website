@@ -69,18 +69,20 @@ export default function PricesPage() {
       } catch (error) {
         console.error("Failed to fetch prices:", error);
         // Fallback data if API is blocked/down
-        if (assets.length === 0) {
-            const fallbackAssets = Object.keys(ASSET_NAMES).map((symbol, i) => ({
-                rank: i + 1,
-                symbol: symbol.replace("USDT", ""),
-                name: ASSET_NAMES[symbol],
-                price: "---",
-                change: "0.00%",
-                cap: "---"
-            }));
-            setAssets(fallbackAssets);
-            setLoading(false);
-        }
+        setAssets((currentAssets) => {
+            if (currentAssets.length === 0) {
+                return Object.keys(ASSET_NAMES).map((symbol, i) => ({
+                    rank: i + 1,
+                    symbol: symbol.replace("USDT", ""),
+                    name: ASSET_NAMES[symbol],
+                    price: "---",
+                    change: "0.00%",
+                    cap: "---"
+                }));
+            }
+            return currentAssets;
+        });
+        setLoading(false);
       }
     };
 

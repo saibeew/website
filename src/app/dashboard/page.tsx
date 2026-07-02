@@ -3,7 +3,7 @@
 import GlassCard from "@/components/ui/GlassCard";
 import { ArrowUpRight, ArrowDownRight, Activity, Wallet, DollarSign, LayoutDashboard, Globe, Zap } from "lucide-react";
 import { useStore } from "@/store/useStore";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 
 // Widgets
@@ -15,23 +15,15 @@ import CalendarView from "@/components/dashboard/fundamentals/CalendarView";
 
 export default function DashboardPage() {
   const { balance, pnl, activeStrategies, fetchDashboardData, activeSymbol, setActiveSymbol } = useStore();
+  const sentiment = activeSymbol.includes("USD") && !activeSymbol.includes("XAU")
+    ? "Neutral"
+    : activeSymbol.includes("XAU") || activeSymbol.includes("BTC")
+      ? "Risk On"
+      : "Risk Off";
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
-
-   const [sentiment, setSentiment] = useState("Risk On");
-
-   useEffect(() => {
-     // Very simple logic to make it feel reactive
-     if (activeSymbol.includes("USD") && !activeSymbol.includes("XAU")) {
-        setSentiment("Neutral");
-     } else if (activeSymbol.includes("XAU") || activeSymbol.includes("BTC")) {
-        setSentiment("Risk On");
-     } else {
-        setSentiment("Risk Off");
-     }
-   }, [activeSymbol]);
+  }, [fetchDashboardData]);
 
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col gap-6">

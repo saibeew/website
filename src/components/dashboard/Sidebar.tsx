@@ -111,10 +111,10 @@ export default function Sidebar() {
             <motion.div 
               animate={{ rotate: isSidebarCollapsed ? 360 : 0 }}
               transition={{ duration: 0.6, ease: "backOut" }}
-              className="w-10 h-10 bg-gradient-to-br from-[#00f2fe] to-[#4facfe] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(0,242,254,0.4)] relative overflow-hidden"
+              className="px-2 h-10 min-w-[40px] bg-gradient-to-br from-[#00f2fe] to-[#4facfe] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(0,242,254,0.4)] relative overflow-hidden"
             >
                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
-               <span className="font-extrabold text-black text-xs tracking-tighter relative z-10">BW</span>
+               <span className="font-black text-black text-[10px] tracking-tighter relative z-10">beew</span>
             </motion.div>
             <AnimatePresence>
                 {!isSidebarCollapsed && (
@@ -124,7 +124,7 @@ export default function Sidebar() {
                         exit={{ opacity: 0, x: -10 }}
                         className="flex flex-col"
                     >
-                        <span className="font-bold text-white text-lg tracking-widest uppercase">Be<span className="text-[#00f2fe]">we</span></span>
+                        <span className="font-bold text-white text-lg tracking-tight">beew<span className="text-[#00f2fe]">.ai</span></span>
                     </motion.div>
                 )}
             </AnimatePresence>

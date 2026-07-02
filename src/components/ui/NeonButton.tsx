@@ -57,8 +57,8 @@ export default function NeonButton({
       data-magnetic="true"
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${widthClass} ${disabledClass} ${className}`}
       onClick={!disabled ? onClick : undefined}
-      whileHover={!disabled ? { scale: 1.05 } : {}}
-      whileTap={!disabled ? { scale: 0.95 } : {}}
+      whileHover={!disabled ? { scale: 1.000 } : {}}
+      whileTap={!disabled ? { scale: 0.98 } : {}}
       transition={{ type: "spring", stiffness: 400, damping: 15 }}
       style={style}
       disabled={disabled}

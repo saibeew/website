@@ -11,7 +11,7 @@ export default function BacktestView() {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Fundamental Backtester</h2>
             <p className="text-text-muted mb-8">
-                Analyze historical price action against past economic events. understand the "Why" behind every move.
+                Analyze historical price action against past economic events. Understand the reason behind every move.
             </p>
             
             <div className="bg-surface/50 border border-white/5 rounded-xl p-6 text-left mb-6">
@@ -32,7 +32,7 @@ export default function BacktestView() {
             </div>
             
             <p className="text-xs text-white/30">
-                This feature connects historical news APIs with price data. currently in beta.
+                This feature connects historical news APIs with price data and is currently in beta.
             </p>
        </div>
     </div>

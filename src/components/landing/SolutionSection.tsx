@@ -28,7 +28,7 @@ export default function SolutionSection() {
           </h2>
           
           <p className="text-text-muted text-lg mb-8 leading-relaxed">
-            BEEW democratizes hedge-fund technology. We replaced complex coding with visual nodes, and emotional trading with cold, hard AI logic.
+            beew.ai focuses on transparent MT5 automation, war room context, and a test-before-you-pay workflow for serious forex traders.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
@@ -75,7 +75,7 @@ export default function SolutionSection() {
                       <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
                       <div className="w-3 h-3 rounded-full bg-green-500/50" />
                    </div>
-                   <div className="text-xs text-text-muted">BEEW Strategy Engine.exe</div>
+                   <div className="text-xs text-text-muted">beew.ai MT5 Engine</div>
                 </div>
                 <div className="p-8 relative min-h-[400px] flex items-center justify-center">
                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-secondary/10 to-transparent" />
@@ -85,7 +85,7 @@ export default function SolutionSection() {
                       <div className="flex justify-between mb-8">
                          <div className="p-4 bg-surface border border-white/10 rounded-xl shadow-lg">
                             <div className="text-xs text-secondary mb-1">Input Source</div>
-                            <div className="font-bold">Binance BTC/USDT</div>
+                            <div className="font-bold">MT5 XAUUSD</div>
                          </div>
                          <div className="p-4 bg-surface border border-white/10 rounded-xl shadow-lg">
                              <div className="text-xs text-accent mb-1">Condition</div>

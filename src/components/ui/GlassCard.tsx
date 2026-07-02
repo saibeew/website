@@ -38,10 +38,13 @@ export default function GlassCard({
 
   return (
     <motion.div
-      className={`relative bg-[#0F172A]/80 border border-white/5 rounded-3xl p-6 overflow-hidden shadow-xl transition-all duration-300 border-t ${glowColors[glowColor]} ${className}`}
+      className={`relative border border-white/5 rounded-3xl p-6 overflow-hidden shadow-xl transition-all duration-300 border-t ${glowColors[glowColor]} ${className}`}
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      style={style}
+      animate={{ opacity: 1, y: 0, backgroundColor: "rgba(15, 23, 42, 0.8)" }}
+      style={{
+        ...style,
+        backgroundColor: "rgba(15, 23, 42, 0.8)",
+      }}
       whileHover={hoverEffect ? { 
         y: -4, 
         backgroundColor: "rgba(15, 23, 42, 0.95)",

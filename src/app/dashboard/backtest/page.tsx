@@ -1,19 +1,22 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
 import { 
   Play, 
   Upload, 
   Settings, 
   TrendingUp, 
-  Clock, 
-  BarChart2,
   Cpu,
   FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createClient } from '@/lib/supabase/client';
+
+function detectPlatformFromFile(fileName: string): "mt4" | "mt5" | null {
+  const extension = fileName.toLowerCase().split(".").pop();
+  if (extension === "ex4" || extension === "mq4") return "mt4";
+  if (extension === "ex5" || extension === "mq5") return "mt5";
+  return null;
+}
 
 export default function BacktestPage() {
   const [platform, setPlatform] = useState<"mt4" | "mt5">("mt5");
@@ -23,18 +26,21 @@ export default function BacktestPage() {
   const [eaName, setEaName] = useState("MACD Sample");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [symbol, setSymbol] = useState("EURUSD");
+  const [timeframe, setTimeframe] = useState("H1");
+  const [dateFrom, setDateFrom] = useState("2023-01-01");
+  const [dateTo, setDateTo] = useState("2023-12-31");
+  const [deposit, setDeposit] = useState("10000");
+  const [leverage, setLeverage] = useState("1:100");
 
   const [backtests, setBacktests] = useState<any[]>([]);
-  const supabase = createClient();
 
   useEffect(() => {
     const fetchHistory = async () => {
-        const { data } = await supabase
-            .from('backtests')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(5);
-        if (data) setBacktests(data);
+      const response = await fetch("/api/data/backtests");
+      if (!response.ok) return;
+      const data = await response.json();
+      setBacktests(data.backtests || []);
     };
     fetchHistory();
   }, []);
@@ -42,8 +48,16 @@ export default function BacktestPage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
+        const detectedPlatform = detectPlatformFromFile(file.name);
+        if (!detectedPlatform) {
+          setError("Upload a valid MT4/MT5 Expert Advisor: .ex4, .mq4, .ex5, or .mq5.");
+          e.target.value = "";
+          return;
+        }
         setSelectedFile(file);
-        setEaName(file.name.replace(/\.(ex4|ex5)$/, ""));
+        setPlatform(detectedPlatform);
+        setError("");
+        setEaName(file.name.replace(/\.(ex4|ex5|mq4|mq5)$/i, ""));
     }
   };
 
@@ -54,12 +68,12 @@ export default function BacktestPage() {
     try {
         const formData = new FormData();
         formData.append('platform', platform);
-        formData.append('symbol', "EURUSD");
-        formData.append('timeframe', "H1");
-        formData.append('dateFrom', "2023-01-01");
-        formData.append('dateTo', "2023-12-31");
-        formData.append('deposit', "10000");
-        formData.append('leverage', "1:100");
+        formData.append('symbol', symbol);
+        formData.append('timeframe', timeframe);
+        formData.append('dateFrom', dateFrom);
+        formData.append('dateTo', dateTo);
+        formData.append('deposit', deposit);
+        formData.append('leverage', leverage);
         
         if (selectedFile) {
             formData.append('eaFile', selectedFile);
@@ -164,7 +178,7 @@ export default function BacktestPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-text-muted">Symbol</label>
-                    <select className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors">
+                    <select value={symbol} onChange={(e) => setSymbol(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors">
                         <option>EURUSD</option>
                         <option>GBPUSD</option>
                         <option>XAUUSD</option>
@@ -174,31 +188,31 @@ export default function BacktestPage() {
                 </div>
                 <div className="space-y-2">
                      <label className="text-sm font-medium text-text-muted">Timeframe</label>
-                    <select className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors">
-                        <option>H1 (1 Hour)</option>
-                        <option>M15 (15 Minutes)</option>
-                        <option>M5 (5 Minutes)</option>
-                        <option>H4 (4 Hours)</option>
-                        <option>D1 (Daily)</option>
+                    <select value={timeframe} onChange={(e) => setTimeframe(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors">
+                        <option value="H1">H1 (1 Hour)</option>
+                        <option value="M15">M15 (15 Minutes)</option>
+                        <option value="M5">M5 (5 Minutes)</option>
+                        <option value="H4">H4 (4 Hours)</option>
+                        <option value="D1">D1 (Daily)</option>
                     </select>
                 </div>
                 
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-text-muted">Start Date</label>
-                    <input type="date" className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" />
+                    <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" />
                 </div>
                  <div className="space-y-2">
                     <label className="text-sm font-medium text-text-muted">End Date</label>
-                    <input type="date" className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" />
+                    <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" />
                 </div>
 
                 <div className="space-y-2">
                      <label className="text-sm font-medium text-text-muted">Initial Deposit ($)</label>
-                    <input type="number" defaultValue="10000" className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" />
+                    <input type="number" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" />
                 </div>
                 <div className="space-y-2">
                      <label className="text-sm font-medium text-text-muted">Leverage</label>
-                    <select className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors">
+                    <select value={leverage} onChange={(e) => setLeverage(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors">
                         <option>1:100</option>
                         <option>1:500</option>
                         <option>1:30</option>
@@ -212,7 +226,7 @@ export default function BacktestPage() {
                     type="file" 
                     ref={fileInputRef}
                     className="hidden" 
-                    accept={platform === 'mt4' ? ".ex4" : ".ex5"}
+                    accept=".ex4,.mq4,.ex5,.mq5"
                     onChange={handleFileSelect}
                 />
                 <button 
@@ -222,13 +236,13 @@ export default function BacktestPage() {
                     <Upload className="text-text-muted group-hover:text-white transition-colors" size={20} />
                     <span className="text-sm font-medium text-text-muted group-hover:text-white transition-colors">
                         {eaName === "MACD Sample" 
-                            ? `Upload Expert Advisor (.ex${platform === 'mt4' ? '4' : '5'})`
+                            ? "Upload Expert Advisor (.ex4, .mq4, .ex5, .mq5)"
                             : `Selected: ${eaName}`
                         }
                     </span>
                 </button>
                 <p className="text-[10px] text-center text-text-muted mt-2 opacity-60">
-                    *Uploaded EA will be automatically installed to MT4 Experts folder.
+                    *Uploaded EA will be detected and installed into the matching MT4 or MT5 Experts folder.
                 </p>
             </div>
           </div>
@@ -238,6 +252,9 @@ export default function BacktestPage() {
         <div className="space-y-6">
             <div className="bg-surface-light border border-white/5 rounded-2xl p-6">
                 <h3 className="font-semibold text-white mb-4">Actions</h3>
+                <p className="text-[10px] text-text-muted mb-3">
+                    MT5 visual testing requires `MT5_TERMINAL_EXE` and `MT5_DATA_PATH` if you want the EA to be copied into the correct terminal folder.
+                </p>
                 
                 {error && (
                     <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs">
@@ -263,7 +280,7 @@ export default function BacktestPage() {
                     )}
                 </button>
                 <p className="text-[10px] text-center text-text-muted mt-2 opacity-60">
-                    *Will open MT4 window to run simulation visually.
+                    *Will open the matching MetaTrader terminal and run the EA on the selected chart.
                 </p>
             </div>
 

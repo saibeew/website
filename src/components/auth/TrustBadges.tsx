@@ -6,8 +6,8 @@ import { ShieldCheck, Globe, Activity } from "lucide-react";
 
 const badges = [
     { icon: ShieldCheck, text: "AES-256 Encryption", color: "text-green-400" },
-    { icon: Globe, text: "Global Broker API", color: "text-blue-400" },
-    { icon: Activity, text: "99.99% Uptime", color: "text-amber-400" }
+    { icon: Globe, text: "MT5 Broker Workflow", color: "text-blue-400" },
+    { icon: Activity, text: "Risk Controls Visible", color: "text-amber-400" }
 ];
 
 export default function TrustBadges() {

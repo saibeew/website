@@ -6,7 +6,7 @@ import { Activity, Server, Zap, Globe } from "lucide-react";
 
 export default function SystemHealth() {
   const [stats, setStats] = useState({
-    latency: "12ms",
+    latency: "Syncing",
     cpu: "24%",
     bridge: "Active",
     nodes: 8

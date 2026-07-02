@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import styles from "./NodePalette.module.css";
-import GlassCard from "../ui/GlassCard";
 import { 
   Activity, 
   GitMerge, 

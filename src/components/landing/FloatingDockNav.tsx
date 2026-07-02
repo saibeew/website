@@ -3,12 +3,12 @@
 import React, { useState, useRef } from "react";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent, useSpring, useMotionValue } from "framer-motion";
 import Link from "next/link";
-import { Home, Layers, Globe, CreditCard, LogIn, Sparkles, Menu, X, Command } from "lucide-react";
+import { Home, Layers, Newspaper, CreditCard, LogIn, Sparkles, Menu, X, Command } from "lucide-react";
 
 const NAV_ITEMS = [
   { name: "Home", icon: Home, href: "/" },
   { name: "Features", icon: Layers, href: "#features" },
-  { name: "Market", icon: Globe, href: "#market" },
+  { name: "War Room", icon: Newspaper, href: "#warroom" },
   { name: "Pricing", icon: CreditCard, href: "#pricing" },
 ];
 
@@ -170,11 +170,11 @@ export default function FloatingDockNav() {
                             </button>
                         </MagneticItem>
                     </Link>
-                    <Link href="/register">
+                    <Link href="#apply">
                          <MagneticItem>
                             <button className="px-5 py-2.5 rounded-2xl bg-[#0EF2B1]/10 hover:bg-[#0EF2B1]/20 border border-[#0EF2B1]/20 text-[#0EF2B1] text-sm font-bold flex items-center gap-2 transition-colors">
                                 <Sparkles size={16} />
-                                <span>Get Started</span>
+                                <span>Apply for Beta</span>
                             </button>
                          </MagneticItem>
                     </Link>

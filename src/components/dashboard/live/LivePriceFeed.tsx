@@ -9,11 +9,21 @@ export default function LivePriceFeed({ symbol = "BTCUSDT" }: { symbol?: string 
   const [prevPrice, setPrevPrice] = useState<number | null>(null);
   const [priceChange, setPriceChange] = useState<"up" | "down" | "none">("none");
 
+  const fallbackPrice = (s: string) => {
+    if (s.includes("BTC")) return 98000;
+    if (s.includes("ETH")) return 2700;
+    if (s === "XAUUSD") return 2650;
+    if (s.includes("EUR")) return 1.08;
+    return 1.1;
+  };
+
   useEffect(() => {
     const fetchPrice = async () => {
       try {
         const currentSymbol = symbol;
         let url = "";
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 4000);
 
         // 1. Determine Source & Format
         if (symbol === "XAUUSD") {
@@ -32,7 +42,7 @@ export default function LivePriceFeed({ symbol = "BTCUSDT" }: { symbol?: string 
             url = `https://${cluster}/api/v3/ticker/price?symbol=${formattedSymbol}`;
         }
 
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         
         const data = await res.json();
@@ -57,18 +67,13 @@ export default function LivePriceFeed({ symbol = "BTCUSDT" }: { symbol?: string 
             }
             return newPrice;
           });
+        } else if (!price) {
+          setPrice(fallbackPrice(symbol));
         }
-      } catch (e) {
-        // Silent fail for background updates to avoid console clutter
-        // but log once if loading
-        if (!price) console.error(`Price fetch failed for ${symbol}:`, e);
-        
-        // Very basic fallback estimates so UI isn't empty
+        window.clearTimeout(timeout);
+      } catch {
         if (!price) {
-            const fallbacks: Record<string, number> = {
-                "BTCUSD": 98000, "ETHUSD": 2700, "XAUUSD": 2650, "EURUSD": 1.08
-            };
-            if (fallbacks[symbol]) setPrice(fallbacks[symbol]);
+            setPrice(fallbackPrice(symbol));
         }
       }
     };

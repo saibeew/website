@@ -69,6 +69,38 @@ const REPORT_EXPLANATIONS: Record<string, string> = {
     'SPX500': "High Speculative Longs often act as contrarian indicators at extreme cycles."
 };
 
+type CotPoint = {
+  week: string;
+  long: number;
+  short: number;
+  net: number;
+};
+
+function CotChart({ data, height = 300 }: { data: CotPoint[]; height?: number }) {
+  return (
+    <div style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={data}>
+          <defs>
+            <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={THEME.accent} stopOpacity={0.2} />
+              <stop offset="95%" stopColor={THEME.accent} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke={THEME.grid} vertical={false} />
+          <XAxis dataKey="week" stroke={THEME.textMuted} fontSize={10} tickLine={false} axisLine={false} />
+          <YAxis stroke={THEME.textMuted} fontSize={10} tickLine={false} axisLine={false} />
+          <Tooltip
+            contentStyle={{ backgroundColor: THEME.bg, borderColor: THEME.border, borderRadius: "12px", fontSize: "11px", color: "#fff" }}
+          />
+          <Area type="monotone" dataKey="net" stroke={THEME.accent} strokeWidth={3} fillOpacity={1} fill="url(#colorNet)" animationDuration={1000} />
+          <ReferenceLine y={0} stroke={THEME.border} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 export default function CotReportView() {
   const [selectedAsset, setSelectedAsset] = useState('XAUUSD');
   const [isMaximized, setIsMaximized] = useState(false);
@@ -81,29 +113,6 @@ export default function CotReportView() {
   const total = lastPoint.long + lastPoint.short;
   const longPct = Math.round((lastPoint.long / total) * 100);
   const shortPct = 100 - longPct;
-
-  const ChartComponent = ({ height = 300 }: { height?: number }) => (
-    <div style={{ height }}>
-        <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={currentData}>
-                <defs>
-                    <linearGradient id="colorNet" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={THEME.accent} stopOpacity={0.2}/>
-                        <stop offset="95%" stopColor={THEME.accent} stopOpacity={0}/>
-                    </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={THEME.grid} vertical={false} />
-                <XAxis dataKey="week" stroke={THEME.textMuted} fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke={THEME.textMuted} fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip 
-                    contentStyle={{ backgroundColor: THEME.bg, borderColor: THEME.border, borderRadius: '12px', fontSize: '11px', color: '#fff' }}
-                />
-                <Area type="monotone" dataKey="net" stroke={THEME.accent} strokeWidth={3} fillOpacity={1} fill="url(#colorNet)" animationDuration={1000} />
-                <ReferenceLine y={0} stroke={THEME.border} />
-            </AreaChart>
-        </ResponsiveContainer>
-    </div>
-  );
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:p-6 bg-slate-900/40 min-h-[500px]">
@@ -175,7 +184,7 @@ export default function CotReportView() {
                        <Maximize2 size={12} />
                    </button>
                </div>
-               <ChartComponent height={220} />
+               <CotChart data={currentData} height={220} />
            </div>
 
            {/* Insights Card */}
@@ -222,7 +231,7 @@ export default function CotReportView() {
                         </button>
                     </div>
                     <div className="p-8 bg-slate-950/20">
-                        <ChartComponent height={500} />
+                        <CotChart data={currentData} height={500} />
                         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="p-6 bg-slate-900 border border-slate-800 rounded-2xl">
                                 <h4 className="text-[10px] font-black text-blue-400 uppercase mb-2">Long-Term Thesis</h4>

@@ -41,6 +41,7 @@ const InsightTag = ({ title, desc, color = "blue" }: { title: string, desc: stri
 
 export default function JournalPage() {
   const { trades, fetchTrades } = useStore();
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filterSymbol, setFilterSymbol] = useState("ALL");
   const [filterSide, setFilterSide] = useState("ALL");
   const [filterResult, setFilterResult] = useState("ALL");
@@ -50,8 +51,11 @@ export default function JournalPage() {
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => {
-    fetchTrades();
-  }, []);
+    fetchTrades().catch((error) => {
+      console.error("Failed to load trade journal:", error);
+      setLoadError(error instanceof Error ? error.message : "Unable to load trade journal.");
+    });
+  }, [fetchTrades]);
 
   const filteredTrades = useMemo(() => {
     return trades.filter(t => {
@@ -194,7 +198,28 @@ export default function JournalPage() {
 
   const uniqueSymbols = ["ALL", ...Array.from(new Set(trades.map(t => t.symbol)))];
 
-  if (!analytics) return <div className="p-10 text-center text-slate-500">Initializing Universal Analytics...</div>;
+  if (loadError) {
+    return (
+      <div className="max-w-3xl mx-auto py-12 px-4">
+        <GlassCard className="p-6 border-red-500/20 bg-red-500/5">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="text-red-400 mt-0.5" size={18} />
+            <div>
+              <h2 className="text-lg font-bold text-white">Trade journal unavailable</h2>
+              <p className="mt-2 text-sm text-slate-300">
+                {loadError}
+              </p>
+              <p className="mt-3 text-sm text-slate-400">
+                This page depends on `/api/data/trades`, which requires a valid PostgreSQL session and database.
+              </p>
+            </div>
+          </div>
+        </GlassCard>
+      </div>
+    );
+  }
+
+  if (!analytics) return <div className="p-10 text-center text-slate-500">No trades available yet.</div>;
 
   return (
     <div className="space-y-6 pb-20 max-w-[1600px] mx-auto min-h-screen pt-4 px-2 lg:px-6">
@@ -278,7 +303,10 @@ export default function JournalPage() {
               <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Diagnostic Pulse</span>
           </div>
           <div className="flex-1 text-[11px] font-bold text-slate-300 tracking-tight italic max-h-[48px] overflow-y-auto pr-2 custom-scrollbar">
-              "Institutional analysis for <span className="text-white font-black">{filterSymbol}</span> active: {isAiLoading ? "Processing technical data..." : aiOpinion}"
+              <span>Institutional analysis for </span>
+              <span className="text-white font-black">{filterSymbol}</span>
+              <span> active: </span>
+              <span>{isAiLoading ? "Processing technical data..." : aiOpinion}</span>
           </div>
       </GlassCard>
 

@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BEEW / Aialgo
 
-## Getting Started
+AI-assisted algorithmic trading dashboard built with Next.js, React, and PostgreSQL-backed authentication and application data.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js App Router
+- React 19
+- TypeScript
+- PostgreSQL for users, sessions, and application data via `DATABASE_URL`
+- Zustand for client state
+
+## Environment
+
+Create `.env.local` with:
+
+```env
+DATABASE_URL=postgres://user:password@host:5432/database
+POSTGRES_SSL=true
+POSTGRES_POOL_MAX=10
+AUTH_SESSION_DAYS=30
+DEFAULT_INITIAL_BALANCE=10000
+
+OPENAI_API_KEY=optional-openai-key
+GEMINI_API_KEY=optional-gemini-key
+
+MT4_TERMINAL_EXE=C:\Program Files (x86)\Your Broker MT4 Terminal\terminal.exe
+MT4_DATA_PATH=C:\Users\you\AppData\Roaming\MetaQuotes\Terminal\your-terminal-id
+
+NEXT_PUBLIC_ENABLE_DEMO_DATA=false
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## PostgreSQL Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Run the schema against your PostgreSQL database:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+psql "$DATABASE_URL" -f src/lib/postgres/schema.sql
+```
 
-## Learn More
+The schema creates `app_users`, `user_sessions`, `strategies`, `watchlists`, `trades`, `exchange_connections`, `market_reports`, and `backtests`.
 
-To learn more about Next.js, take a look at the following resources:
+## Login
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Use `/register` to create a PostgreSQL-backed account, then sign in at `/login`. Sessions are stored in `user_sessions` and mirrored to the browser with an HTTP-only `beew_session` cookie.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Development
 
-## Deploy on Vercel
+```bash
+npm install
+npm run dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Checks
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm test
+npm run build
+```

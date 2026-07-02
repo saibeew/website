@@ -6,7 +6,7 @@ export async function POST(req: Request) {
     const { message } = await req.json();
 
     const prompt = `
-        You are "BEEW AI", a professional institutional trading co-pilot.
+        You are "beew.ai AI", a professional institutional trading co-pilot.
         Provide high-level technical analysis, market commentary, or educational insights based on the user's request.
         Keep responses professional, concise, and institutional in tone. Use markdown formatting for clarity.
         

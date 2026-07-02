@@ -99,6 +99,10 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
   const [selectedArticle, setSelectedArticle] = useState<NewsItem | null>(null);
   const [newIds, setNewIds] = useState<Set<number>>(new Set());
   const [newCount, setNewCount] = useState(0);
+  const [sourceMode, setSourceMode] = useState<"live" | "database" | "demo" | "unknown">("unknown");
+  const [aiExplanations, setAiExplanations] = useState<Record<number, string>>({});
+  const [aiLoadingId, setAiLoadingId] = useState<number | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const knownIds = useRef<Set<number>>(new Set());
 
@@ -114,10 +118,11 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
         url += `&category=${activeCategory}`;
       }
 
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error("Failed to fetch news stream.");
       const data = await res.json();
       const incoming = data.items || [];
+      setSourceMode(data.source || (data.fallback ? "demo" : "unknown"));
 
       if (isInitial) {
         incoming.forEach((i: NewsItem) => knownIds.current.add(i.id));
@@ -159,7 +164,36 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, symbol, activeCategory]);
 
-  const aiCount = items.filter((i) => i.ai_summarized).length;
+  const explainArticle = async (article: NewsItem) => {
+    if (aiExplanations[article.id]) return;
+
+    setAiLoadingId(article.id);
+    setAiError(null);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: [
+            "Explain this market news only if it is relevant to trading decisions.",
+            "Keep it concise and practical for an MT5 forex/CFD trader.",
+            `Headline: ${article.title}`,
+            `Source: ${article.source}`,
+            `Category: ${article.category}`,
+            article.body ? `Context: ${article.body}` : "",
+          ].filter(Boolean).join("\n"),
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to generate AI explanation.");
+      setAiExplanations((prev) => ({ ...prev, [article.id]: data.reply || "No explanation returned." }));
+    } catch (error) {
+      setAiError(error instanceof Error ? error.message : "Unable to generate AI explanation.");
+    } finally {
+      setAiLoadingId(null);
+    }
+  };
 
   // --- FULL LAYOUT (Dashboard News Page View) ---
   if (layout === "full") {
@@ -185,9 +219,9 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0 px-1">
           {[
             { label: "Total Articles", value: items.length, color: "text-white" },
-            { label: "AI Summarized", value: aiCount, color: "text-primary" },
-            { label: "Pending Analysis", value: items.length - aiCount, color: "text-warning" },
-            { label: "Live Connection", value: lastUpdated ? lastUpdated.toLocaleTimeString() : "Syncing...", color: "text-secondary" },
+            { label: "New Updates", value: newCount, color: "text-primary" },
+            { label: "Filter", value: activeCategory === "all" ? "All" : activeCategory, color: "text-warning" },
+            { label: "Live Connection", value: sourceMode === "demo" ? "Demo Feed" : sourceMode === "database" ? "Local DB" : sourceMode === "live" ? "Live Feed" : lastUpdated ? lastUpdated.toLocaleTimeString() : "Syncing...", color: "text-secondary" },
           ].map((stat, idx) => (
             <div key={idx} className="bg-surface/20 border border-white/5 rounded-xl p-3 backdrop-blur-sm shadow-xl flex flex-col justify-center">
               <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">{stat.label}</span>
@@ -201,7 +235,7 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
           <div className="shrink-0 h-8 bg-black/40 border border-white/5 rounded-xl overflow-hidden flex items-center relative backdrop-blur-sm mx-1">
             <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-[#05070A] to-transparent w-8 z-10 pointer-events-none" />
             <div className="absolute right-0 top-0 bottom-0 bg-gradient-to-l from-[#05070A] to-transparent w-8 z-10 pointer-events-none" />
-            <div className="flex whitespace-nowrap animate-[shimmer_25s_infinite_linear] gap-12 text-xs text-text-muted pl-4">
+            <div className="flex whitespace-nowrap animate-[shimmer_25s_linear_infinite] gap-12 text-xs text-text-muted pl-4">
               {items.slice(0, 10).map((item, idx) => (
                 <div key={idx} className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors" onClick={() => setSelectedArticle(item)}>
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -317,12 +351,6 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${catConfig.bg} ${catConfig.text} ${catConfig.border}`}>
                           {catConfig.label}
                         </span>
-                        {item.ai_summarized && (
-                          <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded-full flex items-center gap-1">
-                            <Cpu size={8} />
-                            ✦ AI Analyzed
-                          </span>
-                        )}
                         <span className={clsx(
                           "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border",
                           sentiment === 'Bullish' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
@@ -348,13 +376,6 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
                       {item.title}
                     </h3>
 
-                    {/* Brief Snippet */}
-                    {item.body && item.body !== "No summary provided in RSS source." && (
-                      <p className="text-xs text-text-muted line-clamp-2 pl-1 leading-relaxed">
-                        {item.body}
-                      </p>
-                    )}
-
                     {/* Entity Tags */}
                     {entities.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 pl-1 mt-1">
@@ -376,7 +397,12 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
         </div>
         
         {/* Render Popup Modal details wrapper */}
-        {renderDetailModal(selectedArticle, setSelectedArticle)}
+        {renderDetailModal(selectedArticle, setSelectedArticle, {
+          explanation: selectedArticle ? aiExplanations[selectedArticle.id] : undefined,
+          isLoading: selectedArticle ? aiLoadingId === selectedArticle.id : false,
+          error: aiError,
+          onExplain: explainArticle,
+        })}
       </div>
     );
   }
@@ -474,13 +500,27 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
       </div>
 
       {/* Render Popup Modal details wrapper */}
-      {renderDetailModal(selectedArticle, setSelectedArticle)}
+      {renderDetailModal(selectedArticle, setSelectedArticle, {
+        explanation: selectedArticle ? aiExplanations[selectedArticle.id] : undefined,
+        isLoading: selectedArticle ? aiLoadingId === selectedArticle.id : false,
+        error: aiError,
+        onExplain: explainArticle,
+      })}
     </div>
   );
 });
 
 // --- HELPER FUNCTION TO RENDER DETAILS POPUP MODAL ---
-function renderDetailModal(selectedArticle: NewsItem | null, setSelectedArticle: (i: NewsItem | null) => void) {
+function renderDetailModal(
+  selectedArticle: NewsItem | null,
+  setSelectedArticle: (i: NewsItem | null) => void,
+  ai: {
+    explanation?: string;
+    isLoading: boolean;
+    error: string | null;
+    onExplain: (article: NewsItem) => void;
+  }
+) {
   return (
     <AnimatePresence>
       {selectedArticle && (
@@ -517,12 +557,6 @@ function renderDetailModal(selectedArticle: NewsItem | null, setSelectedArticle:
                 }`}>
                   {CATEGORY_COLORS[selectedArticle.category]?.label || selectedArticle.category}
                 </span>
-                {selectedArticle.ai_summarized && (
-                  <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 bg-primary/15 text-primary border border-primary/30 rounded-full flex items-center gap-1">
-                    <Cpu size={10} />
-                    ✦ AI Analyzed
-                  </span>
-                )}
                 <span className={clsx(
                   "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase border",
                   getSentiment(selectedArticle.title, selectedArticle.body) === 'Bullish' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
@@ -540,12 +574,39 @@ function renderDetailModal(selectedArticle: NewsItem | null, setSelectedArticle:
 
               {selectedArticle.body && (
                 <div className="space-y-1">
-                  <h4 className="text-[9px] font-bold text-primary uppercase tracking-wider">Summary</h4>
+                  <h4 className="text-[9px] font-bold text-primary uppercase tracking-wider">Source Context</h4>
                   <p className="text-xs text-text-muted leading-relaxed bg-white/5 border border-white/5 rounded-xl p-3">
                     {selectedArticle.body}
                   </p>
                 </div>
               )}
+
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => ai.onExplain(selectedArticle)}
+                  disabled={ai.isLoading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/25 bg-primary/10 text-primary hover:bg-primary/15 disabled:opacity-60 text-[10px] font-bold uppercase tracking-wider transition-colors"
+                >
+                  <Cpu size={12} />
+                  {ai.explanation ? "AI Explanation Ready" : ai.isLoading ? "Explaining..." : "Explain With AI"}
+                </button>
+
+                {ai.error && (
+                  <p className="text-[10px] text-red-300 bg-red-500/10 border border-red-500/20 rounded-lg p-2">
+                    {ai.error}
+                  </p>
+                )}
+
+                {ai.explanation && (
+                  <div className="rounded-xl border border-primary/20 bg-primary/10 p-3">
+                    <h4 className="text-[9px] font-bold text-primary uppercase tracking-wider mb-2">AI Explanation</h4>
+                    <p className="text-xs text-white/80 leading-relaxed whitespace-pre-line">
+                      {ai.explanation.replace(/\*\*/g, "")}
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* Impacted Assets */}
               {extractEntities(selectedArticle.title, selectedArticle.body).length > 0 && (

@@ -51,10 +51,10 @@ function StatsBar({ seatsLeft }: { seatsLeft: number }) {
   ];
 
   return (
-    <div className="flex items-center gap-6 mt-8 pt-8 border-t border-white/5 w-full justify-center md:justify-start">
+    <div className="flex items-center gap-6 mt-8 pt-8 border-t border-white/5 w-full justify-center lg:justify-start">
       {stats.map(({ value, label, hot }, i) => (
         <div key={label} className="flex items-center gap-6">
-          <div className="flex flex-col items-center md:items-start">
+          <div className="flex flex-col items-center lg:items-start">
             <span className={`text-2xl font-extrabold ${hot ? "text-red-400" : "text-white"}`}>
               {value}
               {hot && (
@@ -72,17 +72,20 @@ function StatsBar({ seatsLeft }: { seatsLeft: number }) {
 
 /* ─── Hero ──────────────────────────────────────────────────────── */
 export default function HeroSection() {
-  const [seats, setSeats] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("beta_seats_left");
-      if (saved) {
-        const parsed = parseInt(saved, 10);
-        return isNaN(parsed) || parsed <= 3 ? 3 : parsed;
-      }
-      localStorage.setItem("beta_seats_left", "14");
+  const [seats, setSeats] = useState(14);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("beta_seats_left");
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      window.setTimeout(() => {
+        setSeats(Number.isNaN(parsed) || parsed <= 3 ? 3 : parsed);
+      }, 0);
+      return;
     }
-    return 14;
-  });
+
+    localStorage.setItem("beta_seats_left", "14");
+  }, []);
 
   useEffect(() => {
     // Ticks down dynamically every 45 seconds with 30% probability, minimum of 3
@@ -110,14 +113,14 @@ export default function HeroSection() {
       className="min-h-[95vh] flex items-center justify-center relative z-10 pt-20"
     >
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 gap-16 w-full max-w-7xl mx-auto px-6 items-center"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 w-full max-w-[1440px] mx-auto px-6 md:px-12 lg:px-16 items-center"
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
       >
         {/* ── Left: Copy ──────────────────────────────────────── */}
         <motion.div
-          className="flex flex-col gap-6 items-center md:items-start text-center md:text-left"
+          className="flex flex-col gap-6 items-center lg:items-start text-center lg:text-left"
           variants={slideUp}
         >
           {/* Scarcity badge */}
@@ -132,7 +135,7 @@ export default function HeroSection() {
           </motion.div>
 
           {/* Headline — outcome first */}
-          <h1 className="text-5xl md:text-[4.5rem] leading-[1.08] font-extrabold tracking-tighter">
+          <h1 className="text-4xl sm:text-5xl lg:text-[4.5rem] xl:text-[5rem] leading-[1.08] font-extrabold tracking-tighter">
             <span className="text-white">
               Trade with precision.<br />
             </span>
@@ -142,7 +145,7 @@ export default function HeroSection() {
           </h1>
 
           {/* Sub-headline */}
-          <p className="text-lg text-text-muted max-w-[500px] leading-relaxed">
+          <p className="text-lg text-text-muted max-w-[580px] leading-relaxed">
             A battle-tested MT5 system with{" "}
             <span className="text-white font-semibold">8 years of backtest data</span>,
             a live war room, and real-time AI market intelligence — running on{" "}
@@ -173,7 +176,7 @@ export default function HeroSection() {
           </div>
 
           {/* Trust strip */}
-          <ul className="grid grid-cols-2 md:flex md:flex-row md:flex-wrap gap-x-5 gap-y-2.5 mt-1">
+          <ul className="grid grid-cols-2 lg:flex lg:flex-row lg:flex-wrap gap-x-5 gap-y-2.5 mt-1 justify-center lg:justify-start w-full">
             {TRUST_ITEMS.map(({ icon: Icon, text }) => (
               <li
                 key={text}
@@ -191,7 +194,7 @@ export default function HeroSection() {
 
         {/* ── Right: Visuals ──────────────────────────────────── */}
         <motion.div
-          className="relative h-[650px] flex items-center justify-center pointer-events-auto"
+          className="relative h-[500px] lg:h-[700px] flex items-center justify-center pointer-events-auto w-full"
           variants={slideUp}
         >
           {/* Globe */}

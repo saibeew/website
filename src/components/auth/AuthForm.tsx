@@ -29,7 +29,7 @@ export default function AuthForm({ type }: AuthFormProps) {
           </h2>
           <p className={styles.subtitle}>
             {isLogin 
-              ? "Access your BEEW AI Terminal" 
+              ? "Access your beew.ai terminal" 
               : "Create your holographic trading identity"}
           </p>
         </div>

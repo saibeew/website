@@ -18,24 +18,24 @@ export default function CTASection() {
          viewport={{ once: true }}
       >
          <h2 className="text-5xl md:text-7xl font-extrabold mb-8 tracking-tighter text-white">
-            Ready to <span className="text-primary neon-text">Transcend</span>?
+            Test it before <span className="text-primary neon-text">you commit</span>.
          </h2>
          <p className="text-xl text-text-muted mb-12 max-w-2xl mx-auto">
-            Join 10,000+ traders who have already switched to the BEEW AI ecosystem. Stop guessing, start engineering wealth.
+            Limited founding seats. Serious traders only. Test it yourself before you commit.
          </p>
          
          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Link href="/register">
+            <Link href="#apply">
                <Magnetic>
                   <NeonButton size="lg" variant="primary" className="min-w-[200px] text-lg">
-                     Get Early Access
+                     Apply for Founding Access
                   </NeonButton>
                </Magnetic>
             </Link>
-            <Link href="/dashboard">
+            <Link href="https://t.me/">
                <Magnetic>
                   <NeonButton size="lg" variant="secondary" className="min-w-[200px] text-lg">
-                     View Demo
+                     Join the Telegram War Room
                   </NeonButton>
                </Magnetic>
             </Link>

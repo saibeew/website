@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react-hooks/unsupported-syntax */
+
 import React, { useEffect, useRef } from "react";
 
 export default function ParticleBackground() {

@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useStore } from "@/store/useStore";
-import { createClient } from '@/lib/supabase/client';
 import GlassCard from "@/components/ui/GlassCard";
 import NeonButton from "@/components/ui/NeonButton";
 import { cn } from "@/lib/utils";
@@ -30,9 +29,19 @@ const TEMPLATES = [
 import Link from "next/link";
 import DeploymentModal from "@/components/dashboard/DeploymentModal";
 
+function detectPlatformFromFile(fileName: string): "mt4" | "mt5" | null {
+  const extension = fileName.toLowerCase().split(".").pop();
+  if (extension === "ex4" || extension === "mq4") return "mt4";
+  if (extension === "ex5" || extension === "mq5") return "mt5";
+  return null;
+}
+
 export default function StrategyLab() {
   const { strategies, fetchStrategies, createStrategy, cloneStrategy, deleteStrategy, addNotification } = useStore();
   const [activeTab, setActiveTab] = useState<'library' | 'backtest'>('library');
+  const [loadingStrategies, setLoadingStrategies] = useState(true);
+  const [loadingBacktests, setLoadingBacktests] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Deployment Modal State
   const [isDeployOpen, setIsDeployOpen] = useState(false);
@@ -61,29 +70,22 @@ export default function StrategyLab() {
     try {
         const res = await fetch('/api/trade/deploy', {
             method: 'POST',
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ...config, strategy: selectedStrategyForDeploy })
         });
         const data = await res.json();
         if (data.success) {
-            deployStrategy({
-                id: data.deploymentId,
-                name: selectedStrategyForDeploy,
-                lotSize: config.lotSize,
-                maxDrawdown: config.maxDrawdown,
-                status: 'Running',
-                accountType: config.accountType,
-                startTime: new Date().toISOString()
-            });
+            deployStrategy(data.deployment);
             addNotification({
                 title: "Strategy Deployed",
-                message: `${selectedStrategyForDeploy} is now live on ${config.accountType.toUpperCase()}.`,
+                message: `${selectedStrategyForDeploy} is prepared on ${config.platform.toUpperCase()} ${config.symbol} ${config.timeframe}.`,
                 type: "success"
             });
             alert(`🚀 Strategy Deployed Successfully!\nRouting to Live Terminal...`);
         } else {
             alert("Deployment Failed: " + data.error);
         }
-    } catch (e) {
+    } catch {
         alert("System Error during deployment.");
     }
   };
@@ -96,21 +98,47 @@ export default function StrategyLab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [backtests, setBacktests] = useState<any[]>([]);
-  const supabase = createClient();
+  const [symbol, setSymbol] = useState("EURUSD");
+  const [timeframe, setTimeframe] = useState("H1");
+  const [dateFrom, setDateFrom] = useState("2023-01-01");
+  const [dateTo, setDateTo] = useState("2023-12-31");
+  const [deposit, setDeposit] = useState("10000");
+  const [leverage, setLeverage] = useState("1:100");
 
   // Load Data
   useEffect(() => {
-    fetchStrategies();
-    fetchHistory();
-  }, []);
+    let alive = true;
+    const load = async () => {
+      setLoadError(null);
+      setLoadingStrategies(true);
+      setLoadingBacktests(true);
+
+      try {
+        await fetchStrategies();
+      } catch (error) {
+        if (alive) setLoadError(error instanceof Error ? error.message : "Unable to load strategies.");
+      } finally {
+        if (alive) setLoadingStrategies(false);
+      }
+
+      try {
+        await fetchHistory();
+      } finally {
+        if (alive) setLoadingBacktests(false);
+      }
+    };
+
+    load();
+    return () => {
+      alive = false;
+    };
+  }, [fetchStrategies]);
 
   const fetchHistory = async () => {
-    const { data } = await supabase
-        .from('backtests')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(5);
-    if (data) setBacktests(data);
+    const response = await fetch("/api/data/backtests");
+    if (!response.ok) return;
+    const data = await response.json();
+    setBacktests(data.backtests || []);
   };
 
   // Strategy Handlers
@@ -126,8 +154,16 @@ export default function StrategyLab() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
         const file = e.target.files[0];
+        const detectedPlatform = detectPlatformFromFile(file.name);
+        if (!detectedPlatform) {
+          setError("Upload a valid MT4/MT5 Expert Advisor: .ex4, .mq4, .ex5, or .mq5.");
+          e.target.value = "";
+          return;
+        }
         setSelectedFile(file);
-        setEaName(file.name.replace(/\.(ex4|ex5)$/, ""));
+        setPlatform(detectedPlatform);
+        setError("");
+        setEaName(file.name.replace(/\.(ex4|ex5|mq4|mq5)$/i, ""));
     }
   };
 
@@ -137,12 +173,12 @@ export default function StrategyLab() {
     try {
         const formData = new FormData();
         formData.append('platform', platform);
-        formData.append('symbol', "EURUSD");
-        formData.append('timeframe', "H1");
-        formData.append('dateFrom', "2023-01-01");
-        formData.append('dateTo', "2023-12-31");
-        formData.append('deposit', "10000");
-        formData.append('leverage', "1:100");
+        formData.append('symbol', symbol);
+        formData.append('timeframe', timeframe);
+        formData.append('dateFrom', dateFrom);
+        formData.append('dateTo', dateTo);
+        formData.append('deposit', deposit);
+        formData.append('leverage', leverage);
         
         if (selectedFile) {
             formData.append('eaFile', selectedFile);
@@ -212,6 +248,18 @@ export default function StrategyLab() {
                 <h3 className="text-xl font-bold text-white">Your Strategies</h3>
                 <NeonButton variant="accent" icon={<Plus size={18} />} onClick={handleCreate}>Create New</NeonButton>
             </div>
+
+            {loadError && (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-amber-200">
+                    {loadError}
+                </div>
+            )}
+
+            {loadingStrategies && (
+                <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-text-muted">
+                    Loading strategy library...
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Create New Card */}
@@ -283,6 +331,12 @@ export default function StrategyLab() {
                     </GlassCard>
                 ))}
             </div>
+
+            {!loadingStrategies && strategies.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-white/10 bg-surface/20 p-6 text-center text-text-muted">
+                    No saved strategies yet. Create one or clone a template to get started.
+                </div>
+            )}
         </>
       )}
 
@@ -311,23 +365,23 @@ export default function StrategyLab() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Symbol</label><select className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors"><option>EURUSD</option><option>GBPUSD</option><option>XAUUSD</option><option>BTCUSD</option></select></div>
-                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Timeframe</label><select className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors"><option>H1 (1 Hour)</option><option>M15 (15 Minutes)</option><option>M5 (5 Minutes)</option></select></div>
-                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Start Date</label><input type="date" className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" /></div>
-                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">End Date</label><input type="date" className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" /></div>
-                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Deposit ($)</label><input type="number" defaultValue="10000" className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" /></div>
-                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Leverage</label><select className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors"><option>1:100</option><option>1:500</option></select></div>
+                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Symbol</label><select value={symbol} onChange={(e) => setSymbol(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors"><option>EURUSD</option><option>GBPUSD</option><option>XAUUSD</option><option>BTCUSD</option><option>US30</option></select></div>
+                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Timeframe</label><select value={timeframe} onChange={(e) => setTimeframe(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors"><option value="H1">H1 (1 Hour)</option><option value="M15">M15 (15 Minutes)</option><option value="M5">M5 (5 Minutes)</option><option value="H4">H4 (4 Hours)</option><option value="D1">D1 (Daily)</option></select></div>
+                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Start Date</label><input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" /></div>
+                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">End Date</label><input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" /></div>
+                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Deposit ($)</label><input type="number" value={deposit} onChange={(e) => setDeposit(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors" /></div>
+                        <div className="space-y-2"><label className="text-sm font-medium text-text-muted">Leverage</label><select value={leverage} onChange={(e) => setLeverage(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-primary/50 transition-colors"><option>1:100</option><option>1:500</option><option>1:30</option><option>1:1000</option></select></div>
                     </div>
 
                     <div className="pt-4 border-t border-white/5">
-                        <input type="file" ref={fileInputRef} className="hidden" accept={platform === 'mt4' ? ".ex4" : ".ex5"} onChange={handleFileSelect} />
+                        <input type="file" ref={fileInputRef} className="hidden" accept=".ex4,.mq4,.ex5,.mq5" onChange={handleFileSelect} />
                         <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-dashed border-white/20 hover:border-white/40 rounded-xl py-4 transition-all group">
                             <Upload className="text-text-muted group-hover:text-white transition-colors" size={20} />
                             <span className="text-sm font-medium text-text-muted group-hover:text-white transition-colors">
-                                {eaName === "MACD Sample" ? `Upload Expert Advisor (.ex${platform === 'mt4' ? '4' : '5'})` : `Selected: ${eaName}`}
+                                {eaName === "MACD Sample" ? "Upload Expert Advisor (.ex4, .mq4, .ex5, .mq5)" : `Selected: ${eaName}`}
                             </span>
                         </button>
-                        <p className="text-[10px] text-center text-text-muted mt-2 opacity-60">*Uploaded EA will be automatically installed to MT4 Experts folder.</p>
+                        <p className="text-[10px] text-center text-text-muted mt-2 opacity-60">*Uploaded EA will be detected and installed into the matching MT4 or MT5 Experts folder.</p>
                     </div>
                 </div>
             </div>
@@ -340,12 +394,14 @@ export default function StrategyLab() {
                     <button onClick={handleStartBacktest} disabled={isSimulating} className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 disabled:opacity-50 text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">
                         {isSimulating ? (<><div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /><span>Launching...</span></>) : (<><Play size={20} fill="currentColor" /><span>Start Visual Backtest</span></>)}
                     </button>
-                    <p className="text-[10px] text-center text-text-muted mt-2 opacity-60">*Will open MT4 window to run simulation visually.</p>
+                    <p className="text-[10px] text-center text-text-muted mt-2 opacity-60">*Will open the matching MetaTrader terminal and run the EA on the selected chart.</p>
                 </div>
 
                 <div className="bg-surface-light border border-white/5 rounded-2xl p-6 space-y-4">
                     <h3 className="font-semibold text-white flex items-center gap-2"><TrendingUp size={16} className="text-green-400" /> Recent Runs ({backtests.length})</h3>
-                    {backtests.length === 0 ? (<p className="text-sm text-text-muted">No runs yet.</p>) : (
+                    {loadingBacktests ? (
+                        <p className="text-sm text-text-muted">Loading backtest history...</p>
+                    ) : backtests.length === 0 ? (<p className="text-sm text-text-muted">No runs yet.</p>) : (
                         <div className="space-y-3">
                             {backtests.map((run: any) => (
                                 <div key={run.id} className="p-3 bg-white/5 rounded-lg border border-white/5 flex justify-between items-center">

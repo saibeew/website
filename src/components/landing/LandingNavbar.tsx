@@ -15,15 +15,15 @@ export default function LandingNavbar() {
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3 no-underline group">
-          <div className="w-9 h-9 bg-gradient-to-br from-[#0EF2B1] to-[#5B8CFF] rounded-lg flex items-center justify-center font-extrabold text-[#05070A] text-sm group-hover:shadow-[0_0_15px_rgba(14,242,177,0.5)] transition-shadow duration-300">
-            BW
+          <div className="px-2 h-9 min-w-[36px] bg-gradient-to-br from-[#0EF2B1] to-[#5B8CFF] rounded-lg flex items-center justify-center font-black text-[#05070A] text-[10px] tracking-tighter group-hover:shadow-[0_0_15px_rgba(14,242,177,0.5)] transition-shadow duration-300">
+            beew
           </div>
-          <span className="font-bold text-white text-lg tracking-tighter">BEEW</span>
+          <span className="font-bold text-white text-lg tracking-tighter">beew.ai</span>
         </Link>
         
         {/* Links */}
         <div className="hidden md:flex gap-8">
-          {['Features', 'Market', 'Pricing'].map((item) => (
+          {['Features', 'Warroom', 'Pricing'].map((item) => (
             <a 
               key={item} 
               href={`#${item.toLowerCase()}`} 
@@ -41,9 +41,9 @@ export default function LandingNavbar() {
               Login
             </button>
           </Link>
-          <Link href="/register">
-             <NeonButton size="sm" variant="primary">Get Started</NeonButton>
-          </Link>
+          <a href="#apply">
+             <NeonButton size="sm" variant="primary">Apply for Beta</NeonButton>
+          </a>
         </div>
       </div>
     </motion.nav>

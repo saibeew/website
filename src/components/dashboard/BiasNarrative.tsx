@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Info, RefreshCw, Sparkles } from "lucide-react";
 import { AiService, AnalysisResult } from "@/services/aiService";
 import clsx from "clsx";
@@ -13,7 +13,7 @@ export default function BiasNarrative({ symbol }: BiasNarrativeProps) {
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const generateBias = async () => {
+    const generateBias = useCallback(async () => {
         setLoading(true);
         try {
             const result = await AiService.analyzeMarket(symbol);
@@ -23,11 +23,11 @@ export default function BiasNarrative({ symbol }: BiasNarrativeProps) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [symbol]);
 
     useEffect(() => {
         generateBias();
-    }, [symbol]);
+    }, [generateBias]);
 
     if (!analysis && !loading) return null;
 

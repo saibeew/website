@@ -81,10 +81,12 @@ export default function CyberButton({
       )}
 
       {/* 2. LASER BORDER TRACE (Action) */}
-      {variant === "action" && dimensions.width > 0 && (
+      {variant === "action" && dimensions.width > 0 && (() => {
+        const gradId = `${glowColor.replace("#", "")}-grad`;
+        return (
         <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible z-0">
            <defs>
-             <linearGradient id={`${glowColor}-grad`} x1="0%" y1="0%" x2="100%" y2="0%">
+             <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
                <stop offset="0%" stopColor="transparent" />
                <stop offset="50%" stopColor={glowColor} />
                <stop offset="100%" stopColor="transparent" />
@@ -104,7 +106,8 @@ export default function CyberButton({
              style={{ filter: `drop-shadow(0 0 5px ${glowColor})` }}
            />
         </svg>
-      )}
+        );
+      })()}
 
       {/* Button Content (Z-Index above effects) */}
       <span className="relative z-10 flex items-center gap-2">

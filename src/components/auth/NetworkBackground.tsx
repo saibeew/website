@@ -2,9 +2,14 @@
 
 import React, { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Points, PointMaterial } from "@react-three/drei";
+import { PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import styles from "./NetworkBackground.module.css";
+
+function seededValue(seed: number) {
+  const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+  return value - Math.floor(value);
+}
 
 const Nodes = () => {
     const count = 100;
@@ -14,16 +19,18 @@ const Nodes = () => {
     // Initial random positions
     const particles = useMemo(() => {
         const positions = new Float32Array(count * 3);
-        const velocities = [];
+        const velocities: Array<{ x: number; y: number; z: number }> = [];
         
         for (let i = 0; i < count; i++) {
-            positions[i * 3] = (Math.random() - 0.5) * 25; // X
-            positions[i * 3 + 1] = (Math.random() - 0.5) * 15; // Y
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 5;  // Z
+            const seed = i + 1;
+            const rand = (offset: number) => seededValue(seed * 97.13 + offset);
+            positions[i * 3] = (rand(1) - 0.5) * 25; // X
+            positions[i * 3 + 1] = (rand(2) - 0.5) * 15; // Y
+            positions[i * 3 + 2] = (rand(3) - 0.5) * 5;  // Z
             velocities.push({
-                x: (Math.random() - 0.5) * 0.02,
-                y: (Math.random() - 0.5) * 0.02,
-                z: (Math.random() - 0.5) * 0.02
+                x: (rand(4) - 0.5) * 0.02,
+                y: (rand(5) - 0.5) * 0.02,
+                z: (rand(6) - 0.5) * 0.02
             });
         }
         return { positions, velocities };
@@ -60,7 +67,7 @@ const Nodes = () => {
             const dy = py - mouse.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
 
-            if (dist < 4) {
+            if (dist < 4 && dist > 0) {
                  // Gentle push/pull
                  px -= dx * 0.02;
                  py -= dy * 0.02;

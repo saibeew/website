@@ -13,7 +13,7 @@ import { useStore, Trade } from "@/store/useStore";
 
 export default function LiveMonitoringPage() {
   const [loading, setLoading] = useState(true);
-  const { activeSymbol, trades, addTrade, addTerminalLog, stopAllStrategies, addNotification, deployedStrategies } = useStore();
+  const { activeSymbol, trades, addTrade, addTerminalLog, stopAllStrategies, addNotification, deployedStrategies, fetchDeployments } = useStore();
 
   const exportLog = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
@@ -42,6 +42,7 @@ export default function LiveMonitoringPage() {
 
     // Simulate initial data load
     const timer = setTimeout(() => setLoading(false), 1200);
+    fetchDeployments();
     
     // Connect to real Binance Trade Stream for "Live Log"
     const pair = activeSymbol.toLowerCase().replace("usd", "usdt");
@@ -219,7 +220,9 @@ export default function LiveMonitoringPage() {
                             <div key={strat.id} className="flex justify-between items-center p-2 rounded bg-black/20 border border-white/5">
                                 <div className="flex flex-col">
                                     <span className="text-[10px] font-bold text-white">{strat.name}</span>
-                                    <span className="text-[9px] text-text-muted font-mono">{strat.accountType.toUpperCase()} | LOT: {strat.lotSize}</span>
+                                    <span className="text-[9px] text-text-muted font-mono">
+                                      {(strat.platform || "mt5").toUpperCase()} | {strat.symbol || activeSymbol} {strat.timeframe || ""} | LOT: {strat.lotSize}
+                                    </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -241,9 +244,9 @@ export default function LiveMonitoringPage() {
                    <div className="text-[10px] font-bold text-primary px-1.5 py-0.5 bg-primary/10 rounded">BULLISH CONFIRMED</div>
                </div>
                <div className="text-xs text-white/80 font-mono italic leading-relaxed space-y-2">
-                  <p>"Detecting buy-side liquidity sweep at 1.1042..."</p>
-                  <p className="text-text-muted">"Institutional rejection candle forming on 15m TF."</p>
-                  <p className="text-primary/70">"Targeting Fair Value Gap at 1.1085. Risk: 0.5%."</p>
+                  <p>Detecting buy-side liquidity sweep at 1.1042...</p>
+                  <p className="text-text-muted">Institutional rejection candle forming on 15m TF.</p>
+                  <p className="text-primary/70">Targeting Fair Value Gap at 1.1085. Risk: 0.5%.</p>
                </div>
            </GlassCard>
         </div>

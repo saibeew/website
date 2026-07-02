@@ -9,9 +9,8 @@ import styles from "./AuthForm.module.css"; // Reusing auth styles for base glas
 import TrustBadges from "./TrustBadges";
 
 const brokers = [
-    { id: 'zerodha', name: 'Zerodha Kite' },
-    { id: 'binance', name: 'Binance API' },
     { id: 'mt5', name: 'MetaTrader 5' },
+    { id: 'mt4', name: 'MetaTrader 4' },
     { id: 'ibkr', name: 'Interactive Brokers' }
 ];
 
@@ -20,7 +19,7 @@ export default function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("trader@beew.ai"); // Pre-filled
     const [password, setPassword] = useState("Trade@2025");   // Pre-filled
-    const [broker, setBroker] = useState("zerodha");
+    const [broker, setBroker] = useState("mt5");
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -65,12 +64,12 @@ export default function LoginForm() {
                          <div className="p-2 rounded-full bg-cyan-500/10 border border-cyan-500/20">
                             <Zap size={20} className="text-cyan-400" />
                          </div>
-                         <span className="text-sm font-mono text-cyan-400 tracking-wider">BEEW ACCESS</span>
+                         <span className="text-sm font-mono text-cyan-400 tracking-wider">beew.ai access</span>
                     </motion.div>
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
                         Welcome Back
                     </h1>
-                    <p className="text-slate-400 text-sm mt-1">Authenticate to access your trading matrix.</p>
+                    <p className="text-slate-400 text-sm mt-1">Sign in to access your MT5 testing dashboard.</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
@@ -78,7 +77,7 @@ export default function LoginForm() {
                     {/* Active Broker */}
                     <div className="space-y-1.5">
                         <label className="text-xs font-medium text-slate-400 ml-1 flex items-center gap-1">
-                            <Layers size={12} /> Trading Exchange
+                            <Layers size={12} /> Trading Platform
                         </label>
                         <div className="relative group/input">
                             <select 

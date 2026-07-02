@@ -316,7 +316,7 @@ export default function TradingGlobe() {
       const h = containerRef.current.clientHeight;
       
       // Responsive base scaling
-      baseScale = w < 768 ? 0.5 : (w < 1200 ? 0.75 : 0.85);
+      baseScale = w < 768 ? 0.55 : (w < 1024 ? 0.75 : (w < 1440 ? 0.95 : 1.15));
       
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -325,11 +325,15 @@ export default function TradingGlobe() {
     handleResize(); // Initial call
     window.addEventListener("resize", handleResize);
 
+    const currentContainer = containerRef.current;
+
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mousedown", handleClick);
       window.removeEventListener("resize", handleResize);
-      containerRef.current?.removeChild(renderer.domElement);
+      if (currentContainer) {
+        currentContainer.removeChild(renderer.domElement);
+      }
     };
   }, []);
 

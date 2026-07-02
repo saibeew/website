@@ -1,5 +1,6 @@
-import { create } from 'zustand';
-import { createClient } from '@/lib/supabase/client';
+import { create } from "zustand";
+
+type RiskLevel = "Low" | "Medium" | "High";
 
 interface User {
   id: string;
@@ -7,503 +8,393 @@ interface User {
   email: string;
 }
 
-interface StoreState {
-    // Auth State
-    isAuthenticated: boolean;
-    user: User | null;
-    login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-    loginWithGoogle: () => Promise<void>;
-    register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-    logout: () => Promise<void>;
-
-    // UI State
-    isSidebarOpen: boolean;
-    toggleSidebar: () => void;
-    isSidebarCollapsed: boolean;
-    toggleSidebarCollapse: () => void;
-    
-    // Trading State
-    balance: number;
-    initialBalance: number;
-    pnl: number;
-    activeStrategies: number;
-    strategies: any[];
-    
-    fetchDashboardData: () => Promise<void>;
-    fetchStrategies: () => Promise<void>;
-    createStrategy: (name: string, risk: string, description: string) => Promise<boolean>;
-    deleteStrategy: (id: string) => Promise<boolean>;
-    
-    // Watchlist
-    watchlist: string[];
-    toggleWatchlist: (symbol: string) => void;
-
-    // Active Context
-    activeSymbol: string;
-    setActiveSymbol: (symbol: string) => void;
-
-    // Live Monitoring State
-    trades: Trade[];
-    terminalLogs: string[];
-    exchangeConnections: ExchangeConnection[];
-    addTrade: (trade: Trade) => void;
-    addTerminalLog: (log: string) => void;
-    fetchTrades: () => Promise<void>;
-    fetchConnections: () => Promise<void>;
-    deleteConnection: (id: string) => Promise<boolean>;
-
-    // Strategy Operations
-    stopAllStrategies: () => void;
-    cloneStrategy: (strategy: any) => Promise<boolean>;
-    deployStrategy: (strat: DeployedStrategy) => void;
-    
-    // Deployed State
-    deployedStrategies: DeployedStrategy[];
-
-    // Notifications
-    notifications: Notification[];
-    markAllRead: () => void;
-    addNotification: (notification: Omit<Notification, 'id' | 'read' | 'time'>) => void;
-    updateProfile: (updates: Partial<User>) => Promise<boolean>;
+export interface Strategy {
+  id?: string;
+  created_at?: string;
+  name: string;
+  description?: string | null;
+  risk: RiskLevel;
+  active?: boolean;
+  roi?: string | null;
+  pairs?: string | null;
 }
 
 export interface Trade {
   id?: string;
   symbol: string;
-  side: 'BUY' | 'SELL';
+  side: "BUY" | "SELL";
   amount: string;
   price: string;
   time: string;
-  status: 'OPEN' | 'CLOSED';
+  status: "OPEN" | "CLOSED";
   pnl?: number;
-  duration?: number; // in hours
+  duration?: number;
   exitPrice?: string;
-  maxAdverse?: number; // Maximum drawdown during trade (MAE)
-  maxFavorable?: number; // Maximum profit during trade (MFE)
+  maxAdverse?: number;
+  maxFavorable?: number;
 }
 
 export interface Notification {
-    id: string;
-    title: string;
-    message: string;
-    time: string;
-    read: boolean;
-    type: 'info' | 'alert' | 'success' | 'warning';
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
+  type: "info" | "alert" | "success" | "warning";
 }
 
 export interface DeployedStrategy {
-    id: string;
-    name: string;
-    lotSize: number;
-    maxDrawdown: number;
-    status: 'Running' | 'Paused' | 'Halted';
-    accountType: string;
-    startTime: string;
+  id: string;
+  name: string;
+  platform?: "mt4" | "mt5";
+  symbol?: string;
+  timeframe?: string;
+  lotSize: number;
+  maxDrawdown: number;
+  status: "Running" | "Paused" | "Halted";
+  accountType: string;
+  startTime: string;
+  commandPath?: string;
 }
 
 export interface ExchangeConnection {
-    id: string;
-    exchange: string;
-    status: 'Active' | 'Error' | 'Pending';
-    keys: string;
-    latency: string;
+  id: string;
+  exchange: string;
+  status: "Active" | "Error" | "Pending";
+  keys: string;
+  latency: string;
+}
+
+interface StoreState {
+  isAuthenticated: boolean;
+  user: User | null;
+  initializeAuth: () => Promise<void>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+  isSidebarCollapsed: boolean;
+  toggleSidebarCollapse: () => void;
+
+  balance: number;
+  initialBalance: number;
+  pnl: number;
+  activeStrategies: number;
+  strategies: Strategy[];
+  fetchDashboardData: () => Promise<void>;
+  fetchStrategies: () => Promise<void>;
+  createStrategy: (name: string, risk: RiskLevel | string, description: string) => Promise<boolean>;
+  deleteStrategy: (id: string) => Promise<boolean>;
+
+  watchlist: string[];
+  toggleWatchlist: (symbol: string) => Promise<void>;
+  activeSymbol: string;
+  setActiveSymbol: (symbol: string) => void;
+
+  trades: Trade[];
+  terminalLogs: string[];
+  exchangeConnections: ExchangeConnection[];
+  addTrade: (trade: Trade) => void;
+  addTerminalLog: (log: string) => void;
+  fetchTrades: () => Promise<void>;
+  fetchConnections: () => Promise<void>;
+  deleteConnection: (id: string) => Promise<boolean>;
+
+  stopAllStrategies: () => void;
+  cloneStrategy: (strategy: Strategy) => Promise<boolean>;
+  deployStrategy: (strat: DeployedStrategy) => void;
+  fetchDeployments: () => Promise<void>;
+  deployedStrategies: DeployedStrategy[];
+
+  notifications: Notification[];
+  markAllRead: () => void;
+  addNotification: (notification: Omit<Notification, "id" | "read" | "time">) => void;
+  updateProfile: (updates: Partial<User>) => Promise<boolean>;
+}
+
+const isDemoDataEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_DATA === "true";
+const defaultInitialBalance = Number(process.env.NEXT_PUBLIC_DEFAULT_INITIAL_BALANCE || process.env.NEXT_PUBLIC_INITIAL_BALANCE || 10000);
+const defaultWatchlist = isDemoDataEnabled ? ["XAUUSD", "GBPJPY", "GBPUSD", "BTCUSD", "ETHUSD"] : [];
+
+
+async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
+  const headers = new Headers(init?.headers);
+  if (init?.body && typeof init.body === "string" && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(url, { ...init, headers });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const message = typeof payload?.error === "string" ? payload.error : "Request failed";
+    throw new Error(message);
+  }
+
+  return payload as T;
+}
+
+function normalizeRisk(risk: string): RiskLevel {
+  return risk === "Low" || risk === "High" ? risk : "Medium";
+}
+
+function createDemoTrades(): Trade[] {
+  const symbols = ["EUR/USD", "GBP/JPY", "BTC/USD", "ETH/USD", "XAU/USD", "NAS100"];
+  return Array.from({ length: 40 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - Math.floor(i / 2));
+    const side = Math.random() > 0.4 ? "BUY" : "SELL";
+    const amount = (Math.random() * 2 + 0.1).toFixed(2);
+    const pnl = Number((Math.random() * 400 - 150).toFixed(2));
+    const price = Number((Math.random() * 1000 + 100).toFixed(2));
+    const duration = Math.floor(Math.random() * 72) + 1;
+    const exitPrice = (side === "BUY" ? price + pnl / 10 : price - pnl / 10).toFixed(2);
+    const maxFavorable = Math.abs(pnl) * (1 + Math.random());
+    const maxAdverse = Math.abs(pnl) * Math.random();
+
+    return {
+      id: "mock-" + i,
+      symbol: symbols[Math.floor(Math.random() * symbols.length)],
+      side,
+      amount,
+      price: price.toFixed(2),
+      exitPrice,
+      time: date.toISOString().split("T")[0] + " " + date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      status: "CLOSED",
+      pnl,
+      duration,
+      maxFavorable: Number(maxFavorable.toFixed(2)),
+      maxAdverse: Number(maxAdverse.toFixed(2)),
+    };
+  });
 }
 
 export const useStore = create<StoreState>((set) => ({
-    isAuthenticated: true,
-    user: { id: '00000000-0000-0000-0000-000000000000', name: 'Mock Trader', email: 'trader@aialgo.com' },
-    // Auth State
-    login: async (email, password) => {
-      const supabase = createClient();
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (error) throw error;
-
-        const userName = data.user.user_metadata?.name || data.user.email?.split('@')[0] || "Trader";
-        
-        set({ 
-            isAuthenticated: true, 
-            user: { 
-                id: data.user.id, 
-                email: data.user.email!, 
-                name: userName
-            } 
-        });
-        
-        return { success: true };
-      } catch (error: any) {
-        return { success: false, error: error.message || "Invalid email or password." };
-      }
-    },
-    loginWithGoogle: async () => {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) throw error;
-    },
-    register: async (name, email, password) => {
-      const supabase = createClient();
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { name },
-          },
-        });
-        if (error) throw error;
-        if (data.user) {
-             set({ isAuthenticated: true, user: { id: data.user.id, email: data.user.email!, name: name } });
-             return { success: true };
-        }
-        return { success: false, error: "Registration failed. Please try again." };
-      } catch (error: any) {
-        console.error("Registration failed:", error);
-        return { success: false, error: error.message || "Registration failed." };
-      }
-    },
-    logout: async () => {
-        const supabase = createClient();
-        await supabase.auth.signOut();
-        set({ isAuthenticated: false, user: null });
-    },
-
-    isSidebarOpen: false,
-    toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
-
-    isSidebarCollapsed: false,
-    toggleSidebarCollapse: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
-
-    balance: 12450.75,
-    initialBalance: 10000,
-    pnl: 24.5, // Percentage
-    activeStrategies: 3,
-    // Dashboard State
-    fetchDashboardData: async () => {
-        const state = useStore.getState();
-        const userId = state.user?.id;
-        if (!userId) return;
-
-        try {
-            const supabase = createClient();
-            // 1. Fetch active strategies count
-             const { count: strategiesCount } = await supabase
-                .from('strategies')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', userId)
-                .eq('active', true);
-             
-             // 2. Fetch watchlist
-             const { data: watchlistData } = await supabase
-                .from('watchlists')
-                .select('symbol')
-                .eq('user_id', userId);
-
-             const dbWatchlist = watchlistData?.map(w => w.symbol) || [];
-             
-             // Calculate dynamic stats from trades
-             const tradePnL = state.trades.reduce((acc, trade) => {
-                const amount = parseFloat(trade.amount);
-                const price = parseFloat(trade.price);
-                return acc + (trade.side === 'BUY' ? amount * 100 : -amount * 100); // Simple mock calc
-             }, 0);
-
-             set({ 
-                activeStrategies: strategiesCount || 1,
-                watchlist: dbWatchlist.length > 0 ? dbWatchlist : state.watchlist,
-                balance: 10000 + tradePnL, 
-                pnl: parseFloat(((tradePnL / 10000) * 100).toFixed(2)), 
-             });
-        } catch (error) {
-            console.error("Failed to fetch dashboard data:", error);
-        }
-    },
-
-    // Strategy State
-    strategies: [],
-    fetchStrategies: async () => {
-        try {
-             const state = useStore.getState();
-             const userId = state.user?.id;
-             if (!userId) return;
-
-             const supabase = createClient();
-             const { data, error } = await supabase
-                .from('strategies')
-                .select('*')
-                .eq('user_id', userId)
-                .order('created_at', { ascending: false });
-                
-             if (error) throw error;
-             set({ strategies: data || [] });
-        } catch (error) {
-            console.error(error);
-        }
-    },
-    createStrategy: async (name, risk, description) => {
-        try {
-            const state = useStore.getState();
-            const userId = state.user?.id;
-            if (!userId) return false;
-
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('strategies')
-                .insert([{ user_id: userId, name, risk, description, active: true }]);
-                
-            if (error) throw error;
-            useStore.getState().fetchStrategies();
-            return true;
-        } catch (error) {
-            console.error(error);
-            return false;
-        }
-    },
-
-    // Watchlist State
-    watchlist: ["XAUUSD", "GBPJPY", "GBPUSD", "BTCUSD", "ETHUSD"], // Default
-    toggleWatchlist: async (symbol: string) => {
-        const state = useStore.getState();
-        const userId = state.user?.id;
-        if (!userId) return;
-
-        const exists = state.watchlist.includes(symbol);
-        try {
-            const supabase = createClient();
-            if (exists) {
-                const { error } = await supabase
-                    .from('watchlists')
-                    .delete()
-                    .eq('user_id', userId)
-                    .eq('symbol', symbol);
-                if (error) throw error;
-                set({ watchlist: state.watchlist.filter(s => s !== symbol) });
-            } else {
-                const { error } = await supabase
-                    .from('watchlists')
-                    .insert([{ user_id: userId, symbol }]);
-                if (error) throw error;
-                set({ watchlist: [...state.watchlist, symbol] });
-            }
-        } catch (error) {
-            console.error("Watchlist sync failed:", error);
-        }
-    },
-
-    // Active Context
-    activeSymbol: "XAUUSD",
-    setActiveSymbol: (symbol) => set({ activeSymbol: symbol }),
-
-    // Notifications Implementation
-    notifications: [
-        { id: '1', title: 'System Online', message: 'BEEW AI Engines are fully operational.', time: 'Just now', read: false, type: 'success' },
-        { id: '2', title: 'Market Alert', message: 'High volatility detected in XAUUSD.', time: '2m ago', read: false, type: 'warning' },
-        { id: '3', title: 'Trade Executed', message: 'Long BTCUSD closed for +12.5% profit.', time: '1h ago', read: true, type: 'info' },
-    ],
-    markAllRead: () => set((state) => ({
-        notifications: state.notifications.map(n => ({ ...n, read: true }))
-    })),
-    addNotification: (n) => set((state) => ({
-        notifications: [
-            { ...n, id: Math.random().toString(36).substr(2, 9), read: false, time: 'Just now' },
-            ...state.notifications
-        ]
-    })),
-
-    // Live Monitoring
-    trades: [],
-    terminalLogs: [
-        "Initializing BEEW Execution Bridge...",
-        "Connecting to Global Liquidity Hub (Equinix NY4)...",
-        "MetaTrader 4 Core: Link Established.",
-        "AI Model: BEEW-V2.1 Loaded and Running.",
-    ],
-    exchangeConnections: [],
-    addTrade: (trade) => set((state) => ({
-        trades: [trade, ...state.trades].slice(0, 50)
-    })),
-    addTerminalLog: (log) => set((state) => ({
-        terminalLogs: [...state.terminalLogs, `[${new Date().toLocaleTimeString()}] ${log}`].slice(-100)
-    })),
-    fetchTrades: async () => {
-        try {
-            const supabase = createClient();
-            const { data, error } = await supabase
-                .from('trades')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(50);
-            
-            if (!error && data && data.length > 0) {
-                set({ trades: data });
-            } else {
-                // Expanded Mock Data for Visualization
-                const symbols = ["EUR/USD", "GBP/JPY", "BTC/USD", "ETH/USD", "XAU/USD", "NAS100"];
-                const mockTrades: Trade[] = Array.from({ length: 40 }, (_, i) => {
-                    const date = new Date();
-                    date.setDate(date.getDate() - Math.floor(i / 2)); // Spread over 20 days
-                    const side = Math.random() > 0.4 ? "BUY" : "SELL";
-                    const amount = (Math.random() * 2 + 0.1).toFixed(2);
-                    const pnl = parseFloat((Math.random() * 400 - 150).toFixed(2));
-                    const price = parseFloat((Math.random() * 1000 + 100).toFixed(2));
-                    const duration = Math.floor(Math.random() * 72) + 1; // 1-72 hours
-                    const exitPrice = (side === "BUY" ? price + pnl/10 : price - pnl/10).toFixed(2);
-                    
-                    // MAE/MFE Mock Logic
-                    const maxFavorable = Math.abs(pnl) * (1 + Math.random());
-                    const maxAdverse = Math.abs(pnl) * Math.random();
-
-                    return {
-                        id: `mock-${i}`,
-                        symbol: symbols[Math.floor(Math.random() * symbols.length)],
-                        side: side as 'BUY' | 'SELL',
-                        amount: amount,
-                        price: price.toFixed(2),
-                        exitPrice: exitPrice,
-                        time: date.toISOString().split('T')[0] + " " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        status: "CLOSED",
-                        pnl: pnl,
-                        duration: duration,
-                        maxFavorable: parseFloat(maxFavorable.toFixed(2)),
-                        maxAdverse: parseFloat(maxAdverse.toFixed(2))
-                    };
-                });
-                set({ trades: mockTrades });
-            }
-        } catch (error) {
-            console.error("Failed to fetch trades:", error);
-        }
-    },
-    fetchConnections: async () => {
-        try {
-            const supabase = createClient();
-            const { data, error } = await supabase
-                .from('exchange_connections')
-                .select('*');
-            
-            if (!error && data && data.length > 0) {
-                set({ exchangeConnections: data });
-            } else {
-                set({ exchangeConnections: [
-                    { id: "1", exchange: "Binance", status: "Active", keys: "************a1b2", latency: "12ms" },
-                    { id: "2", exchange: "Coinbase Pro", status: "Error", keys: "************f9e2", latency: "-" },
-                    { id: "3", exchange: "Kraken", status: "Active", keys: "************88d1", latency: "45ms" },
-                ] as ExchangeConnection[] });
-            }
-        } catch (error) {
-            console.error("Failed to fetch connections:", error);
-        }
-    },
-    deleteConnection: async (id: string) => {
-        try {
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('exchange_connections')
-                .delete()
-                .eq('id', id);
-            
-            if (error) throw error;
-            set((state) => ({
-                exchangeConnections: state.exchangeConnections.filter(c => c.id !== id)
-            }));
-            return true;
-        } catch (error) {
-            console.error("Failed to delete connection:", error);
-            return false;
-        }
-    },
-
-    // Strategy Operations
-    stopAllStrategies: () => {
-        set({ activeStrategies: 0, deployedStrategies: [] });
-        const { addTerminalLog, addNotification } = useStore.getState();
-        addTerminalLog("CRITICAL: Manual Emergency Stop Triggered. All orders halted.");
-        addNotification({
-            title: "Emergency Stop",
-            message: "All active strategies have been halted manually.",
-            type: "alert"
-        });
-    },
-    deployedStrategies: [],
-    deployStrategy: (strat) => {
-        set((state) => ({
-            deployedStrategies: [strat, ...state.deployedStrategies],
-            activeStrategies: state.activeStrategies + 1
-        }));
-    },
-    cloneStrategy: async (strategy: any) => {
-        try {
-            const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return false;
-
-            const { error } = await supabase
-                .from('strategies')
-                .insert([{
-                    user_id: user.id,
-                    name: `${strategy.name} (Clone)`,
-                    risk: strategy.risk,
-                    description: `Cloned from ${strategy.name}`,
-                    active: false
-                }]);
-            
-            if (error) throw error;
-            useStore.getState().fetchStrategies();
-            return true;
-        } catch (error) {
-            console.error("Failed to clone strategy:", error);
-            return false;
-        }
-    },
-    deleteStrategy: async (id: string) => {
-        try {
-            const state = useStore.getState();
-            const userId = state.user?.id;
-            if (!userId) return false;
-
-            const supabase = createClient();
-            const { error } = await supabase
-                .from('strategies')
-                .delete()
-                .eq('id', id)
-                .eq('user_id', userId); // Extra safety: only delete if owned by user
-                
-            if (error) throw error;
-            set((state) => ({
-                strategies: state.strategies.filter(s => s.id !== id)
-            }));
-            return true;
-        } catch (error) {
-            console.error("Failed to delete strategy:", error);
-            return false;
-        }
-    },
-
-    // Profile
-    updateProfile: async (updates: Partial<User>) => {
-        try {
-            const supabase = createClient();
-            const { error } = await supabase.auth.updateUser({
-                data: updates
-            });
-            if (error) throw error;
-            
-            set((state) => ({
-                user: state.user ? { ...state.user, ...updates } : null
-            }));
-            return true;
-        } catch (error) {
-            console.error("Failed to update profile:", error);
-            return false;
-        }
+  isAuthenticated: false,
+  user: null,
+  initializeAuth: async () => {
+    try {
+      const data = await apiRequest<{ user: User | null }>("/api/auth/session");
+      set({ isAuthenticated: Boolean(data.user), user: data.user });
+    } catch (error) {
+      console.error("Failed to initialize auth:", error);
+      set({ isAuthenticated: false, user: null });
     }
+  },
+  login: async (email, password) => {
+    try {
+      const data = await apiRequest<{ user: User }>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+      set({ isAuthenticated: true, user: data.user });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : "Invalid email or password." };
+    }
+  },
+  register: async (name, email, password) => {
+    try {
+      const data = await apiRequest<{ user: User }>("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ name, email, password }),
+      });
+      set({ isAuthenticated: true, user: data.user });
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : "Registration failed." };
+    }
+  },
+  logout: async () => {
+    try {
+      await apiRequest<{ success: boolean }>("/api/auth/logout", { method: "POST" });
+    } finally {
+      set({ isAuthenticated: false, user: null });
+    }
+  },
 
+  isSidebarOpen: false,
+  toggleSidebar: () => set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
+  isSidebarCollapsed: false,
+  toggleSidebarCollapse: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
+
+  balance: defaultInitialBalance,
+  initialBalance: defaultInitialBalance,
+  pnl: 0,
+  activeStrategies: 0,
+  strategies: [],
+  fetchDashboardData: async () => {
+    try {
+      const data = await apiRequest<{ activeStrategies: number; watchlist: string[]; balance: number; pnl: number }>("/api/data/dashboard");
+      set({
+        activeStrategies: data.activeStrategies,
+        watchlist: data.watchlist.length > 0 ? data.watchlist : defaultWatchlist,
+        balance: data.balance,
+        pnl: data.pnl,
+      });
+    } catch (error) {
+      console.error("Failed to fetch dashboard data:", error);
+    }
+  },
+  fetchStrategies: async () => {
+    try {
+      const data = await apiRequest<{ strategies: Strategy[] }>("/api/data/strategies");
+      set({ strategies: data.strategies });
+    } catch (error) {
+      console.error("Failed to fetch strategies:", error);
+    }
+  },
+  createStrategy: async (name, risk, description) => {
+    try {
+      await apiRequest<{ strategy: Strategy }>("/api/data/strategies", {
+        method: "POST",
+        body: JSON.stringify({ name, risk: normalizeRisk(risk), description }),
+      });
+      await useStore.getState().fetchStrategies();
+      return true;
+    } catch (error) {
+      console.error("Failed to create strategy:", error);
+      return false;
+    }
+  },
+  deleteStrategy: async (id) => {
+    try {
+      await apiRequest<{ success: boolean }>("/api/data/strategies/" + id, { method: "DELETE" });
+      set((state) => ({ strategies: state.strategies.filter((strategy) => strategy.id !== id) }));
+      return true;
+    } catch (error) {
+      console.error("Failed to delete strategy:", error);
+      return false;
+    }
+  },
+
+  watchlist: defaultWatchlist,
+  toggleWatchlist: async (symbol) => {
+    try {
+      const data = await apiRequest<{ watchlist: string[] }>("/api/data/watchlist", {
+        method: "POST",
+        body: JSON.stringify({ symbol }),
+      });
+      set({ watchlist: data.watchlist });
+    } catch (error) {
+      console.error("Watchlist sync failed:", error);
+    }
+  },
+  activeSymbol: "XAUUSD",
+  setActiveSymbol: (symbol) => set({ activeSymbol: symbol }),
+
+  notifications: [
+    { id: "1", title: "System Online", message: "beew.ai engines are ready.", time: "Just now", read: false, type: "success" },
+  ],
+  markAllRead: () => set((state) => ({ notifications: state.notifications.map((notification) => ({ ...notification, read: true })) })),
+  addNotification: (notification) => set((state) => ({
+    notifications: [
+      { ...notification, id: Math.random().toString(36).slice(2, 11), read: false, time: "Just now" },
+      ...state.notifications,
+    ],
+  })),
+
+  trades: [],
+  terminalLogs: [
+    "Initializing beew.ai Execution Bridge...",
+    "Awaiting authenticated market data session...",
+  ],
+  exchangeConnections: [],
+  addTrade: (trade) => set((state) => ({ trades: [trade, ...state.trades].slice(0, 50) })),
+  addTerminalLog: (log) => set((state) => ({ terminalLogs: [...state.terminalLogs, "[" + new Date().toLocaleTimeString() + "] " + log].slice(-100) })),
+  fetchTrades: async () => {
+    try {
+      const data = await apiRequest<{ trades: Trade[] }>("/api/data/trades");
+      set({ trades: data.trades.length > 0 ? data.trades : isDemoDataEnabled ? createDemoTrades() : [] });
+    } catch (error) {
+      console.error("Failed to fetch trades:", error);
+      if (isDemoDataEnabled) {
+        set({ trades: createDemoTrades() });
+      } else {
+        set({ trades: [] });
+      }
+      throw error;
+    }
+  },
+  fetchConnections: async () => {
+    try {
+      const data = await apiRequest<{ connections: ExchangeConnection[] }>("/api/data/connections");
+      if (data.connections.length > 0 || !isDemoDataEnabled) {
+        set({ exchangeConnections: data.connections });
+      } else {
+        set({ exchangeConnections: [
+          { id: "1", exchange: "MetaTrader 5", status: "Active", keys: "************a1b2", latency: "Connected" },
+          { id: "2", exchange: "Coinbase Pro", status: "Error", keys: "************f9e2", latency: "-" },
+          { id: "3", exchange: "Kraken", status: "Active", keys: "************88d1", latency: "45ms" },
+        ] });
+      }
+    } catch (error) {
+      console.error("Failed to fetch connections:", error);
+    }
+  },
+  deleteConnection: async (id) => {
+    try {
+      await apiRequest<{ success: boolean }>("/api/data/connections/" + id, { method: "DELETE" });
+      set((state) => ({ exchangeConnections: state.exchangeConnections.filter((connection) => connection.id !== id) }));
+      return true;
+    } catch (error) {
+      console.error("Failed to delete connection:", error);
+      return false;
+    }
+  },
+
+  stopAllStrategies: () => {
+    set({ activeStrategies: 0, deployedStrategies: [] });
+    const { addTerminalLog, addNotification } = useStore.getState();
+    addTerminalLog("Manual emergency stop triggered. All local deployments halted.");
+    addNotification({ title: "Emergency Stop", message: "All active strategies have been halted manually.", type: "alert" });
+  },
+  deployedStrategies: [],
+  fetchDeployments: async () => {
+    try {
+      const data = await apiRequest<{ deployments: DeployedStrategy[] }>("/api/data/deployments");
+      set({
+        deployedStrategies: data.deployments,
+        activeStrategies: data.deployments.filter((deployment) => deployment.status === "Running").length,
+      });
+    } catch (error) {
+      console.error("Failed to fetch deployments:", error);
+    }
+  },
+  deployStrategy: (strategy) => set((state) => ({
+    deployedStrategies: [strategy, ...state.deployedStrategies],
+    activeStrategies: state.activeStrategies + 1,
+  })),
+  cloneStrategy: async (strategy) => {
+    try {
+      await apiRequest<{ strategy: Strategy }>("/api/data/strategies/clone", {
+        method: "POST",
+        body: JSON.stringify({
+          name: strategy.name,
+          risk: normalizeRisk(strategy.risk),
+          description: strategy.description || "Cloned from " + strategy.name,
+        }),
+      });
+      await useStore.getState().fetchStrategies();
+      return true;
+    } catch (error) {
+      console.error("Failed to clone strategy:", error);
+      return false;
+    }
+  },
+  updateProfile: async (updates) => {
+    try {
+      const data = await apiRequest<{ user: User }>("/api/auth/profile", {
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      });
+      set({ user: data.user });
+      return true;
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      return false;
+    }
+  },
 }));

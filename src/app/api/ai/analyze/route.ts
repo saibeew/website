@@ -10,7 +10,7 @@ export async function POST(req: Request) {
         }
 
         const prompt = `
-            You are an institutional-grade financial analyst "BEEW AI". 
+            You are an institutional-grade financial analyst "beew.ai AI". 
             Analyze the following market data for ${symbol}.
             Context: ${JSON.stringify(context)}
 
@@ -25,7 +25,18 @@ export async function POST(req: Request) {
         `;
 
         const text = await getAiResponse(prompt, true);
-        const jsonResponse = JSON.parse(text || "{}");
+        let jsonResponse;
+        try {
+            jsonResponse = JSON.parse(text || "{}");
+        } catch {
+            jsonResponse = {
+                bias: "Neutral",
+                confidence: "Low",
+                summary: text || "Unable to parse AI response.",
+                drivers: [],
+                risks: [],
+            };
+        }
 
         return NextResponse.json(jsonResponse);
 

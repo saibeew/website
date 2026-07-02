@@ -15,6 +15,10 @@ interface DeploymentModalProps {
 }
 
 export default function DeploymentModal({ isOpen, onClose, strategyName, onDeploy }: DeploymentModalProps) {
+  const [platform, setPlatform] = useState<"mt4" | "mt5">("mt5");
+  const [symbol, setSymbol] = useState("XAUUSD");
+  const [timeframe, setTimeframe] = useState("M15");
+  const [expertName, setExpertName] = useState(strategyName);
   const [lotSize, setLotSize] = useState("0.01");
   const [maxDrawdown, setMaxDrawdown] = useState("5.0");
   const [accountType, setAccountType] = useState("demo");
@@ -23,7 +27,11 @@ export default function DeploymentModal({ isOpen, onClose, strategyName, onDeplo
     onDeploy({
       lotSize: parseFloat(lotSize),
       maxDrawdown: parseFloat(maxDrawdown),
-      accountType
+      accountType,
+      platform,
+      symbol,
+      timeframe,
+      expertName: expertName || strategyName,
     });
     onClose();
   };
@@ -65,6 +73,55 @@ export default function DeploymentModal({ isOpen, onClose, strategyName, onDeplo
 
               {/* Body */}
               <div className="p-6 space-y-6">
+                 <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Platform</label>
+                      <select
+                        value={platform}
+                        onChange={(e) => setPlatform(e.target.value as "mt4" | "mt5")}
+                        className="w-full bg-surface/50 border border-white/10 rounded-lg p-3 text-white focus:border-primary focus:outline-none transition-colors"
+                      >
+                        <option value="mt4">MT4</option>
+                        <option value="mt5">MT5</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Symbol</label>
+                      <select
+                        value={symbol}
+                        onChange={(e) => setSymbol(e.target.value)}
+                        className="w-full bg-surface/50 border border-white/10 rounded-lg p-3 text-white focus:border-primary focus:outline-none transition-colors"
+                      >
+                        <option>XAUUSD</option>
+                        <option>EURUSD</option>
+                        <option>GBPUSD</option>
+                        <option>BTCUSD</option>
+                        <option>US30</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-text-muted uppercase tracking-wider">Timeframe</label>
+                      <select
+                        value={timeframe}
+                        onChange={(e) => setTimeframe(e.target.value)}
+                        className="w-full bg-surface/50 border border-white/10 rounded-lg p-3 text-white focus:border-primary focus:outline-none transition-colors"
+                      >
+                        <option>M5</option>
+                        <option>M15</option>
+                        <option>H1</option>
+                        <option>H4</option>
+                        <option>D1</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-text-muted uppercase tracking-wider">EA Name</label>
+                      <input
+                        value={expertName}
+                        onChange={(e) => setExpertName(e.target.value)}
+                        className="w-full bg-surface/50 border border-white/10 rounded-lg p-3 text-white focus:border-primary focus:outline-none transition-colors"
+                      />
+                    </div>
+                 </div>
                  
                  {/* Account Selector */}
                  <div className="space-y-2">
@@ -117,7 +174,7 @@ export default function DeploymentModal({ isOpen, onClose, strategyName, onDeplo
                  <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 flex gap-3 items-start">
                     <ShieldAlert className="text-yellow-500 shrink-0 mt-0.5" size={16} />
                     <p className="text-xs text-yellow-200/80 leading-relaxed">
-                       You are about to authorize automated trading. Ensure your VPS/Local Terminal is running and "AutoTrading" is enabled in MT4.
+                       You are about to authorize automated trading. Ensure your VPS/Local Terminal is running and AutoTrading is enabled in MT4.
                     </p>
                  </div>
 

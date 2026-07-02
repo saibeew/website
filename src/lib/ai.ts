@@ -7,7 +7,7 @@ const openai = new OpenAI({
 });
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "empty");
-const geminiModel = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+const geminiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 const KNOWLEDGE_INJECTION = `
 ### PROJECT KNOWLEDGE BASE (IQ-ANCHOR):
@@ -22,7 +22,7 @@ GOOD (Deep IQ): ${ex.good_response}
 `;
 
 const SYSTEM_INSTRUCTION = `
-You are "BEEW AI", a high-performance, institutional-grade trading co-pilot and risk architect.
+You are "beew.ai AI", a high-performance, institutional-grade trading co-pilot and risk architect.
 Your persona is defined by precision, technical depth, and a zero-tolerance approach to fluff.
 
 ${KNOWLEDGE_INJECTION}
@@ -45,7 +45,7 @@ ${KNOWLEDGE_INJECTION}
 - **Geopolitical Sensitivity**: Factor in global volatility impact on asset liquidity/variance.
 - **Institutional Correctness**: Prioritize risk mitigation. Always highlight "Tail Risk" and "Black Swan" exposure.
 
-Your purpose is to act as the "Brain" of the BEEW dashboard.
+Your purpose is to act as the "Brain" of the beew.ai dashboard.
 `;
 
 export async function getAiResponse(prompt: string, jsonMode: boolean = false) {

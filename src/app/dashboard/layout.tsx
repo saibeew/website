@@ -1,16 +1,25 @@
 "use client";
 
+import { useEffect } from "react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import AIAssistantWidget from "@/components/dashboard/AIAssistantWidget";
 import { useStore } from "@/store/useStore";
 import Link from "next/link";
-import { Menu, Bell, User } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import CustomCursor from "@/components/ui/CustomCursor";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { toggleSidebar, isSidebarCollapsed } = useStore();
+  const { toggleSidebar, isSidebarCollapsed, initializeAuth, user } = useStore();
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
+  const userInitials = user?.name
+    ? user.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+    : null;
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -36,7 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
              <NotificationDropdown />
              <Link href="/dashboard/profile">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xs font-bold text-black border border-white/20 hover:scale-105 transition-transform cursor-pointer shadow-[0_0_15px_rgba(0,242,254,0.3)]">
-                    JD
+                    {userInitials || <User size={14} />}
                 </div>
              </Link>
           </div>

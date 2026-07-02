@@ -8,23 +8,18 @@ import GlassCard from "../ui/GlassCard";
 const STEPS = [
   {
     num: "01",
-    title: "Connect Exchange",
-    desc: "Seamlessly link your Binance, Kraken, or Coinbase account via secure API keys."
+    title: "Apply",
+    desc: "Claim your beta seat and get reviewed for war room access."
   },
   {
     num: "02",
-    title: "Build or Clone",
-    desc: "Use our drag-and-drop editor to build a strategy, or clone a profitable one from the marketplace."
+    title: "Test",
+    desc: "Run the algo on our platform and watch forward-test behavior live."
   },
   {
     num: "03",
-    title: "Backtest Instantly",
-    desc: "Run your strategy against 5 years of historical data in seconds to verify performance."
-  },
-  {
-    num: "04",
-    title: "Go Live",
-    desc: "Deploy with one click. Our cloud servers run your strategy 24/7 with 99.9% uptime."
+    title: "Subscribe",
+    desc: "Once satisfied, unlock the full EA for your own MT5 account."
   }
 ];
 
@@ -42,7 +37,7 @@ export default function HowItWorksSection() {
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-20">
             <h2 className="text-4xl font-bold mb-4 neon-text">How It Works</h2>
-            <p className="text-text-muted">From zero to automated trading in 4 simple steps.</p>
+            <p className="text-text-muted">Apply, test, then subscribe only when satisfied.</p>
         </div>
 
         <div className="relative">
