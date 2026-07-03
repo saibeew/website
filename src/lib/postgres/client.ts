@@ -11,7 +11,7 @@ export function getSql() {
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL is not configured. Add it to .env.local before using PostgreSQL-backed data APIs.");
+    throw new Error("DATABASE_URL is not configured. Add it in your hosting environment variables before using PostgreSQL-backed features.");
   }
 
   if (!globalThis.__beewPostgresSql) {
@@ -24,4 +24,8 @@ export function getSql() {
   }
 
   return globalThis.__beewPostgresSql;
+}
+
+export function isPostgresConfigured() {
+  return Boolean(process.env.DATABASE_URL);
 }

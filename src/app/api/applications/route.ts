@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSql } from "@/lib/postgres/client";
-import { serverErrorResponse } from "@/lib/auth/user";
+import { getSql, isPostgresConfigured } from "@/lib/postgres/client";
+import { databaseUnavailableResponse, serverErrorResponse } from "@/lib/auth/user";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +70,8 @@ async function sendConfirmationEmail(input: z.infer<typeof applicationSchema>) {
 
 export async function POST(request: Request) {
   try {
+    if (!isPostgresConfigured()) return databaseUnavailableResponse();
+
     const input = applicationSchema.parse(await request.json());
     const sql = getSql();
     await ensureLeadApplicationsTable();

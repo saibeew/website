@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createSession, hashPassword, normalizeEmail, serverErrorResponse, setSessionCookie } from "@/lib/auth/user";
-import { getSql } from "@/lib/postgres/client";
+import { createSession, databaseUnavailableResponse, hashPassword, normalizeEmail, serverErrorResponse, setSessionCookie } from "@/lib/auth/user";
+import { getSql, isPostgresConfigured } from "@/lib/postgres/client";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +13,8 @@ const registerSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    if (!isPostgresConfigured()) return databaseUnavailableResponse();
+
     const input = registerSchema.parse(await request.json());
     const email = normalizeEmail(input.email);
     const sql = getSql();

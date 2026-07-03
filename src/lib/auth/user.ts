@@ -1,7 +1,7 @@
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { getSql } from "@/lib/postgres/client";
+import { getSql, isPostgresConfigured } from "@/lib/postgres/client";
 
 export const AUTH_COOKIE_NAME = "beew_session";
 
@@ -62,6 +62,7 @@ export async function createSession(userId: string, request?: Request) {
 
 export async function getUserFromSessionToken(token?: string | null): Promise<AuthUser | null> {
   if (!token) return null;
+  if (!isPostgresConfigured()) return null;
 
   const sql = getSql();
   const [user] = await sql<AuthUser[]>`
@@ -83,6 +84,7 @@ export async function getCurrentUser() {
 
 export async function deleteSession(token?: string | null) {
   if (!token) return;
+  if (!isPostgresConfigured()) return;
   await getSql()`delete from user_sessions where token_hash = ${hashSessionToken(token)}`;
 }
 
@@ -113,4 +115,13 @@ export function unauthorizedResponse() {
 export function serverErrorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : "Unexpected server error";
   return NextResponse.json({ error: message }, { status: 500 });
+}
+
+export function databaseUnavailableResponse() {
+  return NextResponse.json(
+    {
+      error: "Database is not configured for this deployment. Add DATABASE_URL in the hosting environment variables and redeploy.",
+    },
+    { status: 503 }
+  );
 }
