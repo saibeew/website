@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
 
 const databaseUrl = process.env.DATABASE_URL;
-console.log("Database URL from .env.local:", databaseUrl ? databaseUrl.replace(/:[^@]+@/, ":****@") : "undefined");
+console.log("DATABASE_URL from .env.local:", databaseUrl ? "configured" : "missing");
 
 if (!databaseUrl) {
   console.error("DATABASE_URL is missing!");
@@ -37,9 +37,6 @@ async function main() {
     } else {
       const userCount = await sql`select count(*) from app_users`;
       console.log("Number of users in database:", userCount[0].count);
-
-      const users = await sql`select id, email, name, password_hash from app_users`;
-      console.log("Registered Users:", users);
     }
   } catch (err) {
     console.error("Database connection/query failed:", err);
