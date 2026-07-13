@@ -14,6 +14,7 @@ if (!databaseUrl) {
 
 const sql = postgres(databaseUrl, {
   connect_timeout: 5,
+  ssl: process.env.POSTGRES_SSL === "true" ? "require" : undefined,
 });
 
 async function main() {

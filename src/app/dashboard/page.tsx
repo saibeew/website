@@ -14,7 +14,7 @@ import DailyBiasView from "@/components/dashboard/fundamentals/DailyBiasView";
 import CalendarView from "@/components/dashboard/fundamentals/CalendarView";
 
 export default function DashboardPage() {
-  const { balance, pnl, activeStrategies, fetchDashboardData, activeSymbol, setActiveSymbol } = useStore();
+  const { balance, pnl, activeStrategies, fetchDashboardData, activeSymbol, setActiveSymbol, authInitialized, isAuthenticated } = useStore();
   const sentiment = activeSymbol.includes("USD") && !activeSymbol.includes("XAU")
     ? "Neutral"
     : activeSymbol.includes("XAU") || activeSymbol.includes("BTC")
@@ -22,8 +22,9 @@ export default function DashboardPage() {
       : "Risk Off";
 
   useEffect(() => {
+    if (!authInitialized || !isAuthenticated) return;
     fetchDashboardData();
-  }, [fetchDashboardData]);
+  }, [authInitialized, fetchDashboardData, isAuthenticated]);
 
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col gap-6">

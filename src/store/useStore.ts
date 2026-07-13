@@ -67,6 +67,7 @@ export interface ExchangeConnection {
 
 interface StoreState {
   isAuthenticated: boolean;
+  authInitialized: boolean;
   user: User | null;
   initializeAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
@@ -118,6 +119,19 @@ const isDemoDataEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_DATA === "true";
 const defaultInitialBalance = Number(process.env.NEXT_PUBLIC_DEFAULT_INITIAL_BALANCE || process.env.NEXT_PUBLIC_INITIAL_BALANCE || 10000);
 const defaultWatchlist = isDemoDataEnabled ? ["XAUUSD", "GBPJPY", "GBPUSD", "BTCUSD", "ETHUSD"] : [];
 
+class ApiRequestError extends Error {
+  status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.status = status;
+  }
+}
+
+function isUnauthorizedError(error: unknown) {
+  return error instanceof ApiRequestError && error.status === 401;
+}
 
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
@@ -130,7 +144,7 @@ async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const message = typeof payload?.error === "string" ? payload.error : "Request failed";
-    throw new Error(message);
+    throw new ApiRequestError(message, response.status);
   }
 
   return payload as T;
@@ -173,14 +187,17 @@ function createDemoTrades(): Trade[] {
 
 export const useStore = create<StoreState>((set) => ({
   isAuthenticated: false,
+  authInitialized: false,
   user: null,
   initializeAuth: async () => {
     try {
       const data = await apiRequest<{ user: User | null }>("/api/auth/session");
-      set({ isAuthenticated: Boolean(data.user), user: data.user });
+      set({ isAuthenticated: Boolean(data.user), authInitialized: true, user: data.user });
     } catch (error) {
-      console.error("Failed to initialize auth:", error);
-      set({ isAuthenticated: false, user: null });
+      if (!isUnauthorizedError(error)) {
+        console.error("Failed to initialize auth:", error);
+      }
+      set({ isAuthenticated: false, authInitialized: true, user: null });
     }
   },
   login: async (email, password) => {
@@ -189,7 +206,7 @@ export const useStore = create<StoreState>((set) => ({
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-      set({ isAuthenticated: true, user: data.user });
+      set({ isAuthenticated: true, authInitialized: true, user: data.user });
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : "Invalid email or password." };
@@ -201,7 +218,7 @@ export const useStore = create<StoreState>((set) => ({
         method: "POST",
         body: JSON.stringify({ name, email, password }),
       });
-      set({ isAuthenticated: true, user: data.user });
+      set({ isAuthenticated: true, authInitialized: true, user: data.user });
       return { success: true };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : "Registration failed." };
@@ -211,7 +228,7 @@ export const useStore = create<StoreState>((set) => ({
     try {
       await apiRequest<{ success: boolean }>("/api/auth/logout", { method: "POST" });
     } finally {
-      set({ isAuthenticated: false, user: null });
+      set({ isAuthenticated: false, authInitialized: true, user: null });
     }
   },
 
@@ -235,6 +252,18 @@ export const useStore = create<StoreState>((set) => ({
         pnl: data.pnl,
       });
     } catch (error) {
+      if (isUnauthorizedError(error)) {
+        set({
+          isAuthenticated: false,
+          authInitialized: true,
+          user: null,
+          activeStrategies: 0,
+          watchlist: defaultWatchlist,
+          balance: defaultInitialBalance,
+          pnl: 0,
+        });
+        return;
+      }
       console.error("Failed to fetch dashboard data:", error);
     }
   },

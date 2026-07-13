@@ -8,6 +8,15 @@ import { US_INDICATORS, CATEGORIES, type IndicatorCategory, type EconomicIndicat
 type SortKey = "name" | "last" | "previous" | "highest" | "lowest";
 type SortDir = "asc" | "desc";
 
+function SortIcon({ active }: { active: boolean }) {
+  return (
+    <ArrowUpDown
+      size={10}
+      className={`inline ml-1 transition-colors ${active ? "text-primary" : "text-white/20"}`}
+    />
+  );
+}
+
 export default function IndicatorsPage() {
   const [activeCategory, setActiveCategory] = useState<IndicatorCategory>("overview");
   const [search, setSearch] = useState("");
@@ -76,13 +85,6 @@ export default function IndicatorsPage() {
     return null;
   };
 
-  const SortIcon = ({ field }: { field: SortKey }) => (
-    <ArrowUpDown
-      size={10}
-      className={`inline ml-1 transition-colors ${sortKey === field ? "text-primary" : "text-white/20"}`}
-    />
-  );
-
   return (
     <div className="h-[calc(100vh-120px)] flex flex-col gap-4">
       {/* Header */}
@@ -132,19 +134,19 @@ export default function IndicatorsPage() {
         {/* Table Header */}
         <div className="grid grid-cols-12 gap-2 px-5 py-3 border-b border-white/10 bg-white/[0.02] shrink-0">
           <button onClick={() => handleSort("name")} className="col-span-4 text-left text-[10px] font-bold text-text-muted uppercase tracking-widest cursor-pointer hover:text-white transition-colors">
-            Indicator <SortIcon field="name" />
+            Indicator <SortIcon active={sortKey === "name"} />
           </button>
           <button onClick={() => handleSort("last")} className="col-span-2 text-right text-[10px] font-bold text-text-muted uppercase tracking-widest cursor-pointer hover:text-white transition-colors">
-            Last <SortIcon field="last" />
+            Last <SortIcon active={sortKey === "last"} />
           </button>
           <button onClick={() => handleSort("previous")} className="col-span-2 text-right text-[10px] font-bold text-text-muted uppercase tracking-widest cursor-pointer hover:text-white transition-colors">
-            Previous <SortIcon field="previous" />
+            Previous <SortIcon active={sortKey === "previous"} />
           </button>
           <button onClick={() => handleSort("highest")} className="col-span-1 text-right text-[10px] font-bold text-text-muted uppercase tracking-widest cursor-pointer hover:text-white transition-colors hidden lg:block">
-            Highest <SortIcon field="highest" />
+            Highest <SortIcon active={sortKey === "highest"} />
           </button>
           <button onClick={() => handleSort("lowest")} className="col-span-1 text-right text-[10px] font-bold text-text-muted uppercase tracking-widest cursor-pointer hover:text-white transition-colors hidden lg:block">
-            Lowest <SortIcon field="lowest" />
+            Lowest <SortIcon active={sortKey === "lowest"} />
           </button>
           <div className="col-span-1 text-right text-[10px] font-bold text-text-muted uppercase tracking-widest hidden lg:block">
             Unit

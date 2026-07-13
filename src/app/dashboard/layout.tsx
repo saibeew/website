@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Sidebar from "@/components/dashboard/Sidebar";
 import AIAssistantWidget from "@/components/dashboard/AIAssistantWidget";
 import { useStore } from "@/store/useStore";
@@ -11,11 +12,18 @@ import CustomCursor from "@/components/ui/CustomCursor";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { toggleSidebar, isSidebarCollapsed, initializeAuth, user } = useStore();
+  const router = useRouter();
+  const { toggleSidebar, isSidebarCollapsed, initializeAuth, authInitialized, isAuthenticated, user } = useStore();
 
   useEffect(() => {
     initializeAuth();
   }, [initializeAuth]);
+
+  useEffect(() => {
+    if (authInitialized && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [authInitialized, isAuthenticated, router]);
 
   const userInitials = user?.name
     ? user.name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)

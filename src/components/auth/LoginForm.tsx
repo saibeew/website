@@ -2,10 +2,9 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Lock, Mail, ArrowRight, Zap, CheckCircle, AlertTriangle, Layers } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, ArrowRight, Zap, AlertTriangle, Layers } from "lucide-react";
 import NeonButton from "../ui/NeonButton";
 import Link from "next/link";
-import styles from "./AuthForm.module.css"; // Reusing auth styles for base glassmorphism, or creates new if needed
 import TrustBadges from "./TrustBadges";
 
 const brokers = [
@@ -27,16 +26,23 @@ export default function LoginForm() {
         setError(null);
         setIsLoading(true);
 
-        // Simulation
-        setTimeout(() => {
-            if (email === "trader@beew.ai" && password === "Trade@2025") {
-                 // Success
-                 window.location.href = "/dashboard";
-            } else {
-                setError("Invalid Credentials. Access Denied.");
-                setIsLoading(false);
+        try {
+            const response = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
+            const payload = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(typeof payload.error === "string" ? payload.error : "Invalid credentials.");
             }
-        }, 1500);
+
+            window.location.href = "/dashboard";
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+            setIsLoading(false);
+        }
     };
 
     return (

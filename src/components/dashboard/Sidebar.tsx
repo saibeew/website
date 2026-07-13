@@ -15,7 +15,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Gem,
-  Newspaper
+  Newspaper,
+  Video
 } from "lucide-react";
 import { useStore } from "@/store/useStore";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
   { icon: ScrollText, label: "Trade Journal", href: "/dashboard/journal" },
   { icon: Globe, label: "Fundamentals", href: "/dashboard/fundamentals" },
   { icon: Newspaper, label: "Market News", href: "/dashboard/news" },
+  { icon: Video, label: "Beew Studio", href: "/dashboard/studio" },
   { icon: Gem, label: "Subscription", href: "/dashboard/subscription" },
 ];
 

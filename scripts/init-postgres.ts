@@ -24,7 +24,8 @@ async function main() {
   const defaultDbUrl = databaseUrl.replace(/\/([^/]+)$/, "/postgres");
   console.log("Connecting to default DB to ensure 'aialgo' database exists...");
 
-  const sqlDefault = postgres(defaultDbUrl, { connect_timeout: 5 });
+  const sslOption = process.env.POSTGRES_SSL === "true" ? "require" : undefined;
+  const sqlDefault = postgres(defaultDbUrl, { connect_timeout: 5, ssl: sslOption });
 
   try {
     // Check if aialgo database exists
@@ -48,7 +49,7 @@ async function main() {
   }
 
   console.log("Connecting to 'aialgo' database to initialize schema...");
-  const sql = postgres(databaseUrl, { connect_timeout: 5 });
+  const sql = postgres(databaseUrl, { connect_timeout: 5, ssl: sslOption });
 
   try {
     const schemaPath = path.resolve("src/lib/postgres/schema.sql");

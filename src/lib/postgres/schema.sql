@@ -150,3 +150,41 @@ create index if not exists beta_applications_created_idx on public.beta_applicat
 
 -- For databases that already had the first PostgreSQL-only schema, add auth tables first,
 -- then keep existing app rows. Add foreign-key constraints manually after mapping old user IDs.
+
+-- ========== Beew Studio Tables ==========
+
+create table if not exists public.studio_jobs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.app_users(id) on delete cascade,
+  service text not null check (service in ('clipper', 'effects', 'trends', 'quant', 'publisher')),
+  status text not null default 'queued' check (status in ('queued', 'processing', 'done', 'failed')),
+  progress integer not null default 0,
+  input jsonb not null default '{}'::jsonb,
+  output jsonb,
+  error text,
+  cost numeric not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists studio_jobs_user_status_idx on public.studio_jobs (user_id, status, created_at desc);
+
+create table if not exists public.scheduled_posts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.app_users(id) on delete cascade,
+  title text not null,
+  caption text,
+  media_url text,
+  platform text not null default 'telegram' check (platform in ('telegram', 'tiktok', 'instagram', 'youtube', 'x')),
+  status text not null default 'draft' check (status in ('draft', 'approved', 'published', 'rejected', 'archived')),
+  scheduled_at timestamptz,
+  published_at timestamptz,
+  reviewer_id uuid references public.app_users(id) on delete set null,
+  review_note text,
+  external_id text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists scheduled_posts_user_status_idx on public.scheduled_posts (user_id, status, created_at desc);
+create index if not exists scheduled_posts_schedule_idx on public.scheduled_posts (scheduled_at) where status = 'approved';
