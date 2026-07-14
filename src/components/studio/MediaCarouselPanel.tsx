@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useState } from "react";
-import { Calendar, Check, Image as ImageIcon, Loader2, RefreshCw, Upload, Video } from "lucide-react";
+import { Calendar, Check, Image as ImageIcon, Loader2, Palette, RefreshCw, Upload, Video } from "lucide-react";
 
 type MediaFile = {
   name: string;
@@ -12,6 +12,19 @@ type MediaFile = {
   type: "image" | "video" | "audio" | "other" | string;
   size: number;
   updatedAt?: string;
+};
+
+type BrandTemplate = {
+  id: string;
+  label: string;
+  assetPath: string;
+  tone: string;
+};
+
+type GeneratedSlide = {
+  index: number;
+  path: string;
+  url: string;
 };
 
 function isImage(file: MediaFile) {
@@ -27,33 +40,16 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function buildCarouselSvg(title: string, subtitle: string, index: number, total: number) {
-  const safeTitle = title.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char] || char);
-  const safeSubtitle = subtitle.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[char] || char);
-  const svg = `
-<svg width="1080" height="1350" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1080" height="1350" fill="#060812"/>
-  <rect x="64" y="64" width="952" height="1222" rx="28" fill="#0D1220" stroke="#2A3348" stroke-width="2"/>
-  <text x="92" y="136" fill="#A78BFA" font-family="Inter, Arial" font-size="30" font-weight="800" letter-spacing="5">BEEW STUDIO</text>
-  <text x="92" y="230" fill="#FFFFFF" font-family="Inter, Arial" font-size="78" font-weight="900">${safeTitle}</text>
-  <foreignObject x="92" y="290" width="896" height="520">
-    <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Inter, Arial; color: #D1D5DB; font-size: 42px; line-height: 1.35; font-weight: 500;">
-      ${safeSubtitle}
-    </div>
-  </foreignObject>
-  <rect x="92" y="930" width="896" height="150" rx="22" fill="#111827" stroke="#374151"/>
-  <text x="130" y="1008" fill="#E5E7EB" font-family="Inter, Arial" font-size="34" font-weight="700">Quant content draft</text>
-  <text x="130" y="1055" fill="#9CA3AF" font-family="Inter, Arial" font-size="24">Review before publishing. Trading involves risk.</text>
-  <text x="92" y="1210" fill="#6B7280" font-family="Inter, Arial" font-size="28">${index + 1}/${total}</text>
-  <circle cx="952" cy="1198" r="28" fill="#7C3AED"/>
-</svg>`.trim();
-  return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
-}
-
 export default function MediaCarouselPanel() {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [selectedPaths, setSelectedPaths] = useState<string[]>([]);
+  const [brandTemplates, setBrandTemplates] = useState<BrandTemplate[]>([]);
+  const [templateId, setTemplateId] = useState("market");
+  const [slideCount, setSlideCount] = useState(3);
+  const [cta, setCta] = useState("Follow Beew for market intelligence.");
+  const [generatedSlides, setGeneratedSlides] = useState<GeneratedSlide[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState("Market edge in three frames");
   const [caption, setCaption] = useState("A concise Beew Studio carousel draft for social publishing.");
@@ -65,10 +61,13 @@ export default function MediaCarouselPanel() {
   );
 
   const carouselSlides = useMemo(() => {
+    if (generatedSlides.length > 0) return generatedSlides.map((slide) => slide.url);
     const slides = selectedFiles.filter(isImage);
     if (slides.length > 0) return slides.map((file) => file.url);
-    return [0, 1, 2].map((idx) => buildCarouselSvg(title, caption, idx, 3));
-  }, [caption, selectedFiles, title]);
+    const selectedTemplate = brandTemplates.find((template) => template.id === templateId) || brandTemplates[0];
+    if (selectedTemplate) return [`/brand-assets/${selectedTemplate.assetPath}`];
+    return [];
+  }, [brandTemplates, generatedSlides, selectedFiles, templateId]);
 
   const fetchFiles = async () => {
     setLoading(true);
@@ -87,7 +86,40 @@ export default function MediaCarouselPanel() {
 
   useEffect(() => {
     fetchFiles();
+    fetch("/api/studio/brand/carousel", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) setBrandTemplates(data.templates || []);
+      })
+      .catch(() => undefined);
   }, []);
+
+  const generateBrandCarousel = async () => {
+    setGenerating(true);
+    setMessage("");
+    try {
+      const res = await fetch("/api/studio/brand/carousel", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId,
+          title,
+          subtitle: caption,
+          cta,
+          slideCount,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Brand carousel generation failed");
+      setGeneratedSlides(data.slides || []);
+      setSelectedPaths([]);
+      setMessage(`Generated ${data.slides.length} Beew-branded slide(s).`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Brand carousel generation failed");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const handleUpload = async (inputFiles: FileList | null) => {
     if (!inputFiles?.length) return;
@@ -116,13 +148,26 @@ export default function MediaCarouselPanel() {
   const scheduleCarousel = async () => {
     setMessage("");
     try {
+      let slides = carouselSlides;
+      if (generatedSlides.length === 0 && selectedFiles.filter(isImage).length === 0) {
+        const res = await fetch("/api/studio/brand/carousel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ templateId, title, subtitle: caption, cta, slideCount }),
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || "Brand carousel generation failed");
+        setGeneratedSlides(data.slides || []);
+        slides = (data.slides || []).map((slide: GeneratedSlide) => slide.url);
+      }
+
       const res = await fetch("/api/studio/publisher", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
-          caption: `${caption}\n\nCarousel assets:\n${carouselSlides.join("\n")}`,
-          mediaUrl: carouselSlides[0],
+          caption: `${caption}\n\n${cta}\n\nCarousel assets:\n${slides.join("\n")}`,
+          mediaUrl: slides[0],
           platform: "telegram",
           scheduledAt: new Date(Date.now() + 5 * 60000).toISOString(),
         }),
@@ -140,10 +185,28 @@ export default function MediaCarouselPanel() {
       <div className="space-y-6 xl:col-span-1">
         <div>
           <h2 className="flex items-center gap-2 text-xl font-bold text-white">
-            <Upload className="h-5 w-5 text-violet-400" />
-            Media Upload
+            <Palette className="h-5 w-5 text-violet-400" />
+            Beew Brand Builder
           </h2>
-          <p className="mt-1 text-sm text-gray-400">Upload screen recordings, videos, and image assets for Studio jobs.</p>
+          <p className="mt-1 text-sm text-gray-400">Generate carousels using the official Beew social templates and assets.</p>
+        </div>
+
+        <div className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3">
+          <label className="text-xs font-semibold uppercase text-gray-400">Brand Template</label>
+          <select
+            value={templateId}
+            onChange={(event) => setTemplateId(event.target.value)}
+            className="w-full rounded-lg border border-white/10 bg-[#111827] px-3 py-2 text-sm text-white outline-none focus:border-violet-500"
+          >
+            {brandTemplates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.label}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500">
+            {brandTemplates.find((template) => template.id === templateId)?.tone || "Beew social template preset."}
+          </p>
         </div>
 
         <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-violet-500/30 bg-violet-950/10 px-4 py-10 text-center transition hover:bg-violet-950/20">
@@ -173,6 +236,31 @@ export default function MediaCarouselPanel() {
             className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-violet-500"
             placeholder="Caption / slide context"
           />
+          <input
+            value={cta}
+            onChange={(event) => setCta(event.target.value)}
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-violet-500"
+            placeholder="CTA"
+          />
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase text-gray-400">Slide Count</label>
+            <input
+              type="number"
+              min={1}
+              max={7}
+              value={slideCount}
+              onChange={(event) => setSlideCount(Math.max(1, Math.min(7, Number(event.target.value) || 3)))}
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white outline-none focus:border-violet-500"
+            />
+          </div>
+          <button
+            onClick={generateBrandCarousel}
+            disabled={generating}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-violet-500/40 bg-violet-950/30 px-4 py-2.5 text-sm font-bold text-violet-100 transition hover:bg-violet-900/40 disabled:opacity-50"
+          >
+            {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Palette className="h-4 w-4" />}
+            Generate Beew Slides
+          </button>
           <button
             onClick={scheduleCarousel}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-violet-500"
@@ -189,7 +277,7 @@ export default function MediaCarouselPanel() {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400">Media Library</h3>
-            <p className="text-xs text-gray-500">Select images for carousel drafts. Use uploaded video paths in Clipper/Effects.</p>
+            <p className="text-xs text-gray-500">Select images to override generated slides, or use uploaded video paths in Clipper/Effects.</p>
           </div>
           <button
             onClick={fetchFiles}
@@ -242,7 +330,9 @@ export default function MediaCarouselPanel() {
         )}
 
         <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-          <h3 className="mb-3 text-sm font-semibold text-violet-300">Carousel Preview</h3>
+          <h3 className="mb-3 text-sm font-semibold text-violet-300">
+            Carousel Preview {generatedSlides.length > 0 ? "(Beew template output)" : ""}
+          </h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {carouselSlides.map((slide, index) => (
               <div key={`${slide}-${index}`} className="aspect-[4/5] overflow-hidden rounded-lg border border-white/10 bg-gray-950">

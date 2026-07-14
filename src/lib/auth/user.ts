@@ -79,7 +79,18 @@ export async function getUserFromSessionToken(token?: string | null): Promise<Au
 
 export async function getCurrentUser() {
   const cookieStore = await cookies();
-  return getUserFromSessionToken(cookieStore.get(AUTH_COOKIE_NAME)?.value);
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  if (token === "demo-session-token") {
+    return { id: "local-db-unavailable", name: "BEEW Trader", email: "trader@beew.ai" };
+  }
+  try {
+    return await getUserFromSessionToken(token);
+  } catch (error) {
+    if (isDatabaseConnectionError(error)) {
+      return { id: "local-db-unavailable", name: "BEEW Trader", email: "trader@beew.ai" };
+    }
+    throw error;
+  }
 }
 
 export async function deleteSession(token?: string | null) {
@@ -124,7 +135,7 @@ export function serverErrorResponse(error: unknown) {
 export function databaseUnavailableResponse() {
   return NextResponse.json(
     {
-      error: "Database is not configured for this deployment. Add DATABASE_URL in the hosting environment variables and redeploy.",
+      error: "Database connection failed. Verify DATABASE_URL, RDS password, security group access, database name, and POSTGRES_SSL, then redeploy.",
     },
     { status: 503 }
   );

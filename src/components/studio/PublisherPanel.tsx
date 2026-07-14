@@ -17,7 +17,9 @@ interface Post {
 }
 
 function isVisualMediaUrl(url?: string) {
-  return Boolean(url && (url.startsWith("data:image/") || /\.(svg|jpg|jpeg|png|webp)$/i.test(url)));
+  if (!url) return false;
+  const decoded = decodeURIComponent(url);
+  return url.startsWith("data:image/") || /\.(svg|jpg|jpeg|png|webp)(?:$|[?&])/i.test(decoded);
 }
 
 /**

@@ -256,11 +256,11 @@ export default function QuantPanel({ prefilledTrendTitle }: { prefilledTrendTitl
                   <ImageIcon className="h-4 w-4" />
                   Visual Explainer Card
                 </h3>
-                <div className="aspect-[9/16] max-h-[350px] mx-auto rounded-lg overflow-hidden border border-white/15 bg-gray-900 mt-4 relative">
-                  <iframe
+                <div className="aspect-[9/16] max-h-[350px] mx-auto rounded-lg overflow-hidden border border-white/15 bg-gray-950 mt-4 relative">
+                  <img
                     src={result.chartUrl}
-                    className="w-full h-full border-none pointer-events-none select-none"
-                    scrolling="no"
+                    alt={`${result.signal.symbol} visual explainer card`}
+                    className="h-full w-full object-contain"
                   />
                 </div>
               </div>

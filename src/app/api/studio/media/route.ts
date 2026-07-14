@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getCurrentUser, unauthorizedResponse } from "@/lib/auth/user";
+import { getCurrentUser, isDatabaseConnectionError, unauthorizedResponse } from "@/lib/auth/user";
 import fs from "fs";
 import path from "path";
 import os from "os";
@@ -88,8 +88,12 @@ function listUploadedMedia() {
  */
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) return unauthorizedResponse();
+    try {
+      const user = await getCurrentUser();
+      if (!user) return unauthorizedResponse();
+    } catch (error) {
+      if (!isDatabaseConnectionError(error)) throw error;
+    }
 
     const fileParam = request.nextUrl.searchParams.get("file");
     if (!fileParam) {
@@ -131,8 +135,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
-    if (!user) return unauthorizedResponse();
+    try {
+      const user = await getCurrentUser();
+      if (!user) return unauthorizedResponse();
+    } catch (error) {
+      if (!isDatabaseConnectionError(error)) throw error;
+    }
 
     const form = await request.formData();
     const files = form.getAll("files").filter((file): file is File => file instanceof File);

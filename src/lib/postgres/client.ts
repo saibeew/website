@@ -11,7 +11,7 @@ export function getSql() {
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
-    throw new Error("DATABASE_URL is not configured. Add it in your hosting environment variables before using PostgreSQL-backed features.");
+    throw new Error("Database connection is unavailable. Set DATABASE_URL and POSTGRES_SSL in the hosting environment, then redeploy.");
   }
 
   if (!globalThis.__beewPostgresSql) {

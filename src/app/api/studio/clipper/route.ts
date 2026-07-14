@@ -72,15 +72,18 @@ export async function POST(req: Request) {
     }
 
     let cleanLocalFilePath: string | undefined;
-    try {
-      cleanLocalFilePath = validateLocalVideoPath(
-        typeof localFilePath === "string" && localFilePath.trim() ? localFilePath.trim() : undefined
-      );
-    } catch (error) {
-      return NextResponse.json(
-        { success: false, error: error instanceof Error ? error.message : "Invalid local video path" },
-        { status: 400 }
-      );
+    const submittedLocalFilePath = typeof localFilePath === "string" && localFilePath.trim() ? localFilePath.trim() : undefined;
+    if (isLocalStudioProcessingEnabled()) {
+      try {
+        cleanLocalFilePath = validateLocalVideoPath(submittedLocalFilePath);
+      } catch (error) {
+        return NextResponse.json(
+          { success: false, error: error instanceof Error ? error.message : "Invalid local video path" },
+          { status: 400 }
+        );
+      }
+    } else {
+      cleanLocalFilePath = submittedLocalFilePath?.replace(/^["']|["']$/g, "");
     }
 
     const clipperOptions = {
@@ -109,7 +112,9 @@ export async function POST(req: Request) {
         queued: true,
         job,
         message:
-          "Clipper job queued. Run npm.cmd run studio:worker to process it with FFmpeg, yt-dlp, Python, and Whisper.",
+          isLocalStudioProcessingEnabled()
+            ? "Clipper job queued. Run npm.cmd run studio:worker to process it with FFmpeg, yt-dlp, Python, and Whisper."
+            : "Clipper job queued in hosted mode. Connect a Studio worker service to process videos with FFmpeg, yt-dlp, Python, and Whisper.",
       },
       { status: 202 }
     );
