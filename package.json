@@ -12,6 +12,8 @@
     "studio:worker:once": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/studio-worker.ts --once",
     "publisher:run": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/run-publisher-once.ts",
     "telegram:test": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/test-telegram.ts",
+    "postgres:test": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/test-postgres.ts",
+    "postgres:init": "ts-node --compiler-options \"{\\\"module\\\":\\\"CommonJS\\\"}\" scripts/init-postgres.ts",
     "news:update": "powershell -Command \"cd d:\\news\\news-engine; python collector/main.py\""
   },
   "dependencies": {

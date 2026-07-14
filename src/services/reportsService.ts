@@ -31,7 +31,9 @@ export const ReportService = {
       const data = await requestJson<{ reports: MarketReport[] }>("/api/data/reports");
       return data.reports;
     } catch (error) {
-      console.error("Error fetching reports:", error);
+      if (!(error instanceof Error && /Database is not configured/i.test(error.message))) {
+        console.error("Error fetching reports:", error);
+      }
       return [];
     }
   },

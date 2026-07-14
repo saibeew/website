@@ -113,6 +113,10 @@ export function unauthorizedResponse() {
 }
 
 export function serverErrorResponse(error: unknown) {
+  if (isDatabaseConnectionError(error)) {
+    return databaseUnavailableResponse();
+  }
+
   const message = error instanceof Error ? error.message : "Unexpected server error";
   return NextResponse.json({ error: message }, { status: 500 });
 }
@@ -123,5 +127,16 @@ export function databaseUnavailableResponse() {
       error: "Database is not configured for this deployment. Add DATABASE_URL in the hosting environment variables and redeploy.",
     },
     { status: 503 }
+  );
+}
+
+export function isDatabaseConnectionError(error: unknown) {
+  if (!(error instanceof Error)) return false;
+  const code = (error as Error & { code?: string }).code;
+  return (
+    code === "28P01" ||
+    code === "ECONNREFUSED" ||
+    code === "ENOTFOUND" ||
+    /password authentication failed|database .* does not exist|connect ECONNREFUSED|DATABASE_URL/i.test(error.message)
   );
 }

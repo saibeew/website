@@ -26,6 +26,10 @@ export default function StudioPage() {
   useEffect(() => {
     fetch("/api/auth/session")
       .then(async (res) => {
+        if (res.status === 503) {
+          setAuthChecked(true);
+          return;
+        }
         if (!res.ok) {
           router.replace("/login");
         } else {

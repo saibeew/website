@@ -118,6 +118,7 @@ interface StoreState {
 const isDemoDataEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_DATA === "true";
 const defaultInitialBalance = Number(process.env.NEXT_PUBLIC_DEFAULT_INITIAL_BALANCE || process.env.NEXT_PUBLIC_INITIAL_BALANCE || 10000);
 const defaultWatchlist = isDemoDataEnabled ? ["XAUUSD", "GBPJPY", "GBPUSD", "BTCUSD", "ETHUSD"] : [];
+const fallbackUser: User = { id: "local-db-unavailable", name: "BEEW Trader", email: "trader@beew.ai" };
 
 class ApiRequestError extends Error {
   status: number;
@@ -131,6 +132,10 @@ class ApiRequestError extends Error {
 
 function isUnauthorizedError(error: unknown) {
   return error instanceof ApiRequestError && error.status === 401;
+}
+
+function isDatabaseUnavailableError(error: unknown) {
+  return error instanceof ApiRequestError && error.status === 503;
 }
 
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
@@ -194,7 +199,11 @@ export const useStore = create<StoreState>((set) => ({
       const data = await apiRequest<{ user: User | null }>("/api/auth/session");
       set({ isAuthenticated: Boolean(data.user), authInitialized: true, user: data.user });
     } catch (error) {
-      if (!isUnauthorizedError(error)) {
+      if (isDatabaseUnavailableError(error)) {
+        set({ isAuthenticated: true, authInitialized: true, user: fallbackUser });
+        return;
+      }
+      if (!isUnauthorizedError(error) && !isDatabaseUnavailableError(error)) {
         console.error("Failed to initialize auth:", error);
       }
       set({ isAuthenticated: false, authInitialized: true, user: null });
@@ -264,7 +273,9 @@ export const useStore = create<StoreState>((set) => ({
         });
         return;
       }
-      console.error("Failed to fetch dashboard data:", error);
+      if (!isDatabaseUnavailableError(error)) {
+        console.error("Failed to fetch dashboard data:", error);
+      }
     }
   },
   fetchStrategies: async () => {
@@ -389,6 +400,10 @@ export const useStore = create<StoreState>((set) => ({
         activeStrategies: data.deployments.filter((deployment) => deployment.status === "Running").length,
       });
     } catch (error) {
+      if (isDatabaseUnavailableError(error)) {
+        set({ deployedStrategies: [], activeStrategies: 0 });
+        return;
+      }
       console.error("Failed to fetch deployments:", error);
     }
   },
