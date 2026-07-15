@@ -1,0 +1,33 @@
+name: Release checks
+
+on:
+  pull_request:
+  push:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
+      NEXT_PUBLIC_APP_URL: https://example.invalid
+      GEMINI_API_KEY: build-placeholder
+      NEXT_PUBLIC_ENABLE_DEMO_DATA: "false"
+      RESEND_API_KEY: build-placeholder
+      RESEND_FROM_EMAIL: beew.ai <onboarding@beew.ai>
+      TRADING_WORKER_API_KEY: build-placeholder-key-value-32-chars-long
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test -- --runInBand
+      - run: npm run build
+      - run: npm audit --omit=dev --audit-level=high

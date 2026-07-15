@@ -11,7 +11,7 @@ export default function ConnectionsPage() {
 
   useEffect(() => {
     fetchConnections();
-  }, []);
+  }, [fetchConnections]);
 
   const handleDelete = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to disconnect ${name}?`)) {

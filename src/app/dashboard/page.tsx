@@ -1,7 +1,7 @@
 "use client";
 
 import GlassCard from "@/components/ui/GlassCard";
-import { ArrowUpRight, ArrowDownRight, Activity, Wallet, DollarSign, LayoutDashboard, Globe, Zap } from "lucide-react";
+import { Activity, Wallet, DollarSign, LayoutDashboard, Globe, Database } from "lucide-react";
 import { useStore } from "@/store/useStore";
 import { useEffect } from "react";
 import Link from "next/link";
@@ -15,12 +15,6 @@ import CalendarView from "@/components/dashboard/fundamentals/CalendarView";
 
 export default function DashboardPage() {
   const { balance, pnl, activeStrategies, fetchDashboardData, activeSymbol, setActiveSymbol, authInitialized, isAuthenticated } = useStore();
-  const sentiment = activeSymbol.includes("USD") && !activeSymbol.includes("XAU")
-    ? "Neutral"
-    : activeSymbol.includes("XAU") || activeSymbol.includes("BTC")
-      ? "Risk On"
-      : "Risk Off";
-
   useEffect(() => {
     if (!authInitialized || !isAuthenticated) return;
     fetchDashboardData();
@@ -34,9 +28,9 @@ export default function DashboardPage() {
               <AssetSelector selected={activeSymbol} onSelect={setActiveSymbol} />
           </div>
           <div className="lg:w-[400px] flex items-center justify-end gap-2 text-xs text-text-muted">
-              <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" /> Live Feed Active</span>
+              <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 bg-amber-400 rounded-full" /> Data source shown per widget</span>
               <span className="mx-2 opacity-20">|</span>
-              <span>Account: PRO-Tier</span>
+              <span>Preview workspace</span>
           </div>
        </div>
 
@@ -44,7 +38,7 @@ export default function DashboardPage() {
        <div className="shrink-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <GlassCard className="p-4 flex items-center justify-between" glowColor="primary">
               <div>
-                 <div className="text-text-muted text-xs font-medium mb-1">Total Balance</div>
+                 <div className="text-text-muted text-xs font-medium mb-1">Configured Starting Balance + Realized PnL</div>
                  <div className="text-2xl font-bold text-white">${balance.toLocaleString()}</div>
               </div>
               <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center text-primary">
@@ -56,7 +50,7 @@ export default function DashboardPage() {
               <div>
                  <div className="text-text-muted text-xs font-medium mb-1">Total PnL</div>
                  <div className="text-2xl font-bold text-white flex items-center gap-2">
-                    +{pnl}% <span className="text-green-500 text-xs bg-green-500/10 px-1.5 py-0.5 rounded">+$2,450</span>
+                    {pnl > 0 ? "+" : ""}{pnl}%
                  </div>
               </div>
               <div className="h-10 w-10 bg-secondary/10 rounded-full flex items-center justify-center text-secondary">
@@ -66,8 +60,8 @@ export default function DashboardPage() {
 
           <GlassCard className="p-4 flex items-center justify-between" glowColor="accent">
               <div>
-                 <div className="text-text-muted text-xs font-medium mb-1">Active Strategies</div>
-                 <div className="text-2xl font-bold text-white">{activeStrategies} Running</div>
+                 <div className="text-text-muted text-xs font-medium mb-1">Saved Strategies</div>
+                 <div className="text-2xl font-bold text-white">{activeStrategies} configured</div>
               </div>
               <div className="h-10 w-10 bg-accent/10 rounded-full flex items-center justify-center text-accent">
                  <Activity size={20} />
@@ -75,15 +69,13 @@ export default function DashboardPage() {
           </GlassCard>
 
            <Link href="/dashboard/live" className="block cursor-pointer transition-transform hover:scale-[1.02]">
-            <GlassCard className="p-4 flex items-center justify-between h-full" glowColor={sentiment === "Risk On" ? "danger" : sentiment === "Neutral" ? "secondary" : "primary"}>
+            <GlassCard className="p-4 flex items-center justify-between h-full" glowColor="secondary">
                 <div>
-                  <div className="text-text-muted text-xs font-medium mb-1">Market Sentiment</div>
-                  <div className="text-2xl font-bold text-white">{sentiment}</div>
+                  <div className="text-text-muted text-xs font-medium mb-1">Market Signal</div>
+                  <div className="text-2xl font-bold text-white">No verified signal</div>
                 </div>
-                <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
-                  sentiment === "Risk On" ? "bg-orange-500/10 text-orange-500" : "bg-blue-500/10 text-blue-500"
-                }`}>
-                  <Zap size={20} />
+                <div className="h-10 w-10 rounded-full flex items-center justify-center bg-blue-500/10 text-blue-500">
+                  <Database size={20} />
                 </div>
             </GlassCard>
            </Link>
@@ -99,7 +91,7 @@ export default function DashboardPage() {
               <div className="flex-[2] bg-surface/30 border border-white/5 rounded-xl overflow-hidden relative">
                   <div className="absolute top-4 left-4 z-10 flex gap-2">
                       <span className="bg-black/40 backdrop-blur border border-white/10 px-2 py-1 rounded text-xs text-white font-mono uppercase">{activeSymbol}</span>
-                      <span className="bg-green-500/10 border border-green-500/20 px-2 py-1 rounded text-xs text-green-400 font-bold">LIVE</span>
+                      <span className="bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded text-xs text-blue-300 font-bold">TRADINGVIEW</span>
                   </div>
                   <MarketChart symbol={activeSymbol} />
               </div>

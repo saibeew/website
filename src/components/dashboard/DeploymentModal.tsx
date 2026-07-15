@@ -4,14 +4,23 @@ import { useState } from "react";
 import GlassCard from "../ui/GlassCard";
 import CyberButton from "../ui/CyberButton";
 import { X, Rocket, ShieldAlert, Zap } from "lucide-react";
-import styles from "./DeploymentModal.module.css";
 import { motion, AnimatePresence } from "framer-motion";
+
+export interface DeploymentConfig {
+  platform: "mt4" | "mt5";
+  symbol: string;
+  timeframe: string;
+  expertName: string;
+  lotSize: number;
+  maxDrawdown: number;
+  accountType: string;
+}
 
 interface DeploymentModalProps {
   isOpen: boolean;
   onClose: () => void;
   strategyName: string;
-  onDeploy: (config: any) => void;
+  onDeploy: (config: DeploymentConfig) => void;
 }
 
 export default function DeploymentModal({ isOpen, onClose, strategyName, onDeploy }: DeploymentModalProps) {

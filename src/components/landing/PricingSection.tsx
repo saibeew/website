@@ -12,21 +12,21 @@ const PLANS = [
     price: "₹499",
     period: "/mo",
     features: ["AI Strategies", "Live Charts", "Basic Journaling"],
-    glow: "primary"
+    glow: "primary" as const
   },
   {
     name: "Pro",
     price: "₹1199",
     period: "/mo",
     features: ["Backtesting Lab", "Auto Execution", "Premium Alerts"],
-    glow: "accent"
+    glow: "accent" as const
   },
   {
     name: "Institutional",
     price: "₹4999",
     period: "/mo",
     features: ["API Access", "Unlimited Strategies", "Advanced AI Models"],
-    glow: "secondary"
+    glow: "secondary" as const
   }
 ];
 
@@ -47,7 +47,7 @@ export default function PricingSection() {
             >
               <GlassCard 
                 className="p-8 flex flex-col h-full hover:-translate-y-2 transition-transform duration-300" 
-                glowColor={plan.glow as any}
+                glowColor={plan.glow}
               >
                 <h3 className="text-2xl text-white mb-4 font-bold">{plan.name}</h3>
                 <div className="flex items-baseline mb-8">

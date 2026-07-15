@@ -1,18 +1,32 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getAiResponse } from "@/lib/ai";
+import { getCurrentUser, serverErrorResponse, unauthorizedResponse } from "@/lib/auth/user";
+import { enforceRateLimit, rejectOversizedRequest } from "@/lib/security/rate-limit";
+
+const analysisSchema = z.object({
+    symbol: z.string().trim().min(1).max(24).regex(/^[A-Za-z0-9._/-]+$/),
+    context: z.unknown().optional(),
+});
 
 export async function POST(req: Request) {
     try {
-        const { symbol, context } = await req.json();
-
-        if (!symbol) {
-            return NextResponse.json({ error: "Symbol is required" }, { status: 400 });
+        const sizeError = rejectOversizedRequest(req, 32_768);
+        if (sizeError) return sizeError;
+        const user = await getCurrentUser();
+        if (!user) return unauthorizedResponse();
+        const rateLimitError = enforceRateLimit(req, { namespace: "ai-analysis", key: user.id, limit: 20, windowMs: 60_000 });
+        if (rateLimitError) return rateLimitError;
+        const { symbol, context } = analysisSchema.parse(await req.json());
+        const serializedContext = JSON.stringify(context ?? null);
+        if (serializedContext.length > 20_000) {
+            return NextResponse.json({ error: "Analysis context is too large." }, { status: 413 });
         }
 
         const prompt = `
             You are an institutional-grade financial analyst "beew.ai AI". 
             Analyze the following market data for ${symbol}.
-            Context: ${JSON.stringify(context)}
+            Context: ${serializedContext}
 
             Return a strict JSON response in the following format:
             {
@@ -40,8 +54,10 @@ export async function POST(req: Request) {
 
         return NextResponse.json(jsonResponse);
 
-    } catch (error: any) {
-        console.error("AI Analysis Error:", error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ error: "Invalid analysis request." }, { status: 400 });
+        }
+        return serverErrorResponse(error);
     }
 }

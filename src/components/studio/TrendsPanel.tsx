@@ -22,6 +22,7 @@ export default function TrendsPanel({ onUseTrend }: TrendsPanelProps) {
   const [trends, setTrends] = useState<Trend[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [source, setSource] = useState<"live" | "preview">("live");
 
   const fetchTrends = async () => {
     setLoading(true);
@@ -35,11 +36,12 @@ export default function TrendsPanel({ onUseTrend }: TrendsPanelProps) {
       const data = await res.json();
       if (data.success) {
         setTrends(data.trends);
+        setSource(data.source === "preview" ? "preview" : "live");
       } else {
         setError(data.error || "Failed to load trends");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch trends");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch trends");
     } finally {
       setLoading(false);
     }
@@ -70,6 +72,12 @@ export default function TrendsPanel({ onUseTrend }: TrendsPanelProps) {
           Refresh
         </button>
       </div>
+
+      {source === "preview" && !loading && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+          Local preview dataset — live RSS/GDELT sources are unavailable. Do not publish these sample narratives as current market news.
+        </div>
+      )}
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
@@ -143,15 +151,17 @@ export default function TrendsPanel({ onUseTrend }: TrendsPanelProps) {
               <div className="mt-5 pt-4 border-t border-white/5 flex justify-between items-center">
                 <span className="text-xs text-gray-500 truncate max-w-[150px]">{trend.source}</span>
                 <div className="flex gap-2">
-                  <a
-                    href={trend.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition"
-                    title="Open Source News"
-                  >
-                    <ArrowUpRight className="h-4 w-4" />
-                  </a>
+                  {trend.link && (
+                    <a
+                      href={trend.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition"
+                      title="Open Source News"
+                    >
+                      <ArrowUpRight className="h-4 w-4" />
+                    </a>
+                  )}
                   <button
                     onClick={() => onUseTrend(trend)}
                     className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-xs font-bold text-white transition"

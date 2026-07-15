@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, TrendingDown, TrendingUp, Maximize2, X, Info } from "lucide-react";
+import { BarChart3, TrendingUp, Maximize2, X, Info } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
 import { useState } from "react";
 
@@ -15,7 +15,8 @@ const THEME = {
 };
 
 // ... (ASSET_DATA, INSIGHTS, REPORT_EXPLANATIONS remain unchanged) ...
-const ASSET_DATA: Record<string, any[]> = {
+type CotDataPoint = { week: string; long: number; short: number; net: number };
+const ASSET_DATA: Record<string, CotDataPoint[]> = {
   'XAUUSD': [
     { week: 'W-7', long: 4000, short: 2400, net: 1600 },
     { week: 'W-6', long: 3000, short: 1398, net: 1602 },

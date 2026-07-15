@@ -49,7 +49,7 @@ Output your response strictly as a JSON object matching this schema:
       complianceChecked: parsed.complianceChecked || false,
       warnings: parsed.warnings || [],
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("[Quant] Failed to generate script via AI:", error);
     // Fallback template script
     return {

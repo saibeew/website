@@ -42,7 +42,7 @@ const Nodes = () => {
     useFrame((state) => {
         if (!meshRef.current || !linesRef.current) return;
         
-        const { positions, velocities } = particles;
+        const { velocities } = particles;
         const positionsAttr = meshRef.current.geometry.attributes.position as THREE.BufferAttribute;
         const linePositions: number[] = [];
         

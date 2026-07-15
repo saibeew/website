@@ -4,16 +4,16 @@ import { useState, useEffect } from "react";
 import GlassCard from "@/components/ui/GlassCard";
 import TradingLoader from "@/components/ui/TradingLoader";
 import NeonButton from "@/components/ui/NeonButton";
-import { ArrowUp, ArrowDown, Activity } from "lucide-react";
+import { Activity } from "lucide-react";
 import LivePriceFeed from "@/components/dashboard/live/LivePriceFeed";
 import SystemHealth from "@/components/dashboard/live/SystemHealth";
 import MarketChart from "@/components/dashboard/MarketChart";
 import TerminalConsole from "@/components/dashboard/live/TerminalConsole";
-import { useStore, Trade } from "@/store/useStore";
+import { useStore, type Trade } from "@/store/useStore";
 
 export default function LiveMonitoringPage() {
   const [loading, setLoading] = useState(true);
-  const { activeSymbol, trades, addTrade, addTerminalLog, stopAllStrategies, addNotification, deployedStrategies, fetchDeployments } = useStore();
+  const { activeSymbol, trades, addTerminalLog, stopAllStrategies, addNotification, deployedStrategies, fetchDeployments } = useStore();
 
   const exportLog = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
@@ -35,82 +35,15 @@ export default function LiveMonitoringPage() {
   };
 
   useEffect(() => {
-    // Generate initial logs for flavor
     addTerminalLog("Global Execution Bridge initialized.");
     addTerminalLog(`Monitoring ${activeSymbol} Liquidity...`);
-    // ... rest of useEffect remains same ...
-
-    // Simulate initial data load
-    const timer = setTimeout(() => setLoading(false), 1200);
-    fetchDeployments();
-    
-    // Connect to real Binance Trade Stream for "Live Log"
-    const pair = activeSymbol.toLowerCase().replace("usd", "usdt");
-    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${pair}@trade`);
-
-    ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-        const newTrade: Trade = {
-            symbol: activeSymbol,
-            side: msg.m ? "SELL" : "BUY", // m is "is the buyer the market maker"
-            amount: parseFloat(msg.q).toFixed(4),
-            price: parseFloat(msg.p).toFixed(2),
-            time: new Date(msg.T).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-            status: 'OPEN'
-        };
-        
-        // Add to store for live visual feel
-        addTrade(newTrade);
-        
-        // Occasionally add to terminal for flavor
-        if (Math.random() < 0.1) {
-            addTerminalLog(`TICK: ${newTrade.side} ${newTrade.amount} ${activeSymbol} @ ${newTrade.price}`);
-        }
-    };
+    const timer = setTimeout(() => setLoading(false), 300);
+    void fetchDeployments();
 
     return () => {
         clearTimeout(timer);
-        ws.close();
     };
-  }, [activeSymbol]);
-
-  // LIVE BRAIN: Strategy Execution Simulation for Deployed Strategies
-  useEffect(() => {
-    if (deployedStrategies.length === 0) return;
-
-    const executionLoop = setInterval(() => {
-        deployedStrategies.forEach(strat => {
-            if (strat.status !== 'Running') return;
-
-            // 5% chance per tick to "Execute" a logic-based trade
-            if (Math.random() < 0.05) {
-                const side = Math.random() > 0.5 ? "BUY" : "SELL";
-                const amount = strat.lotSize.toString();
-                const price = (Math.random() * 100 + 2000).toFixed(2); // Mock for Gold or similar
-                
-                const executionTrade: Trade = {
-                    symbol: activeSymbol,
-                    side: side as any,
-                    amount: amount,
-                    price: price,
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-                    status: 'OPEN'
-                };
-
-                addTrade(executionTrade);
-                addTerminalLog(`[AGENT: ${strat.name}] Executing ${side} @ ${price} (Lot: ${amount})`);
-                
-                addNotification({
-                    title: "Live Execution",
-                    message: `${strat.name} executed ${side} ${activeSymbol} at ${price}`,
-                    type: "info"
-                });
-            }
-        });
-    }, 4000);
-
-    return () => clearInterval(executionLoop);
-  }, [deployedStrategies, activeSymbol]);
+  }, [activeSymbol, addTerminalLog, fetchDeployments]);
 
   if (loading) return <TradingLoader />;
 
@@ -119,7 +52,7 @@ export default function LiveMonitoringPage() {
       <div className="shrink-0 flex justify-between items-center">
         <div>
            <h2 className="text-2xl font-bold text-white mb-1">Live Terminal</h2>
-           <p className="text-text-muted text-sm">Real-time market monitoring and AI execution engine.</p>
+           <p className="text-text-muted text-sm">Market monitoring and terminal-verified execution activity.</p>
         </div>
         <div className="flex gap-3">
            <NeonButton size="sm" variant="danger" onClick={stopAllStrategies}>Stop All</NeonButton>
@@ -225,8 +158,8 @@ export default function LiveMonitoringPage() {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                    <span className="text-[9px] text-green-400 font-bold">{strat.status.toUpperCase()}</span>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${strat.status === "Running" ? "bg-green-500 animate-pulse" : "bg-amber-400"}`} />
+                                    <span className={`text-[9px] font-bold ${strat.status === "Running" ? "text-green-400" : "text-amber-300"}`}>{strat.status.toUpperCase()}</span>
                                 </div>
                             </div>
                         ))

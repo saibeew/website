@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, Play } from "lucide-react";
+import Link from "next/link";
 
 export default function BacktestView() {
   return (
@@ -25,14 +26,14 @@ export default function BacktestView() {
                         <div className="h-10 bg-black/40 border border-white/10 rounded-lg flex items-center px-3 text-sm text-white font-mono">Last 3 Months</div>
                     </div>
                 </div>
-                <button className="w-full h-11 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+                <Link href="/dashboard/templates" className="w-full h-11 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
                     <Play size={16} />
-                    Start Simulation
-                </button>
+                    Open Strategy Backtester
+                </Link>
             </div>
             
             <p className="text-xs text-white/30">
-                This feature connects historical news APIs with price data and is currently in beta.
+                A genuine historical simulation requires an EA or explicit strategy rules, licensed historical price/news data, and the private backtest worker.
             </p>
        </div>
     </div>

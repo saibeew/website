@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import GlassCard from "../ui/GlassCard";
-import { GraduationCap, PlayCircle, Award, BookOpen } from "lucide-react";
+import { PlayCircle, Award, BookOpen } from "lucide-react";
 
 export default function LearningDashboardSection() {
   return (

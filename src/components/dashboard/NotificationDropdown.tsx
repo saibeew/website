@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bell, Check, X, Info, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Bell, Check, Info, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStore } from "@/store/useStore";
 import { cn } from "@/lib/utils";

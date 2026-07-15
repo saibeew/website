@@ -12,8 +12,6 @@ import {
   Globe, 
   LogOut, 
   Network,
-  ChevronLeft,
-  ChevronRight,
   Gem,
   Newspaper,
   Video
@@ -57,15 +55,6 @@ export default function Sidebar() {
       opacity: 1,
       x: 0,
       transition: { staggerChildren: 0.1, delayChildren: 0.2, duration: 0.4 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { x: -20, opacity: 0 },
-    show: { 
-        x: 0, 
-        opacity: 1,
-        transition: { type: "spring", stiffness: 100 }
     }
   };
 
@@ -141,7 +130,7 @@ export default function Sidebar() {
             className="flex-1 py-6 flex flex-col gap-2 overflow-y-auto overflow-x-hidden scrollbar-none px-4 relative z-10"
             onMouseLeave={() => setHoveredTab(null)}
         >
-          {NAV_ITEMS.map((item, index) => {
+          {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link 

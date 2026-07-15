@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { motion, AnimatePresence, useScroll, useMotionValueEvent, useSpring, useMotionValue } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent, useMotionValue } from "framer-motion";
 import Link from "next/link";
 import { Home, Layers, Newspaper, CreditCard, LogIn, Sparkles, Menu, X, Command } from "lucide-react";
 

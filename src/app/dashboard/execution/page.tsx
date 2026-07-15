@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import GlassCard from "@/components/ui/GlassCard";
-import NeonButton from "@/components/ui/NeonButton";
 import { Server, Activity, Lock, Terminal } from "lucide-react";
 import styles from "./page.module.css";
 import { staggerContainer, slideUp } from "@/lib/animations";

@@ -8,19 +8,11 @@ export default function LivePriceFeed({ symbol = "BTCUSDT" }: { symbol?: string 
   const [price, setPrice] = useState<number | null>(null);
   const [prevPrice, setPrevPrice] = useState<number | null>(null);
   const [priceChange, setPriceChange] = useState<"up" | "down" | "none">("none");
-
-  const fallbackPrice = (s: string) => {
-    if (s.includes("BTC")) return 98000;
-    if (s.includes("ETH")) return 2700;
-    if (s === "XAUUSD") return 2650;
-    if (s.includes("EUR")) return 1.08;
-    return 1.1;
-  };
+  const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
     const fetchPrice = async () => {
       try {
-        const currentSymbol = symbol;
         let url = "";
         const controller = new AbortController();
         const timeout = window.setTimeout(() => controller.abort(), 4000);
@@ -59,6 +51,7 @@ export default function LivePriceFeed({ symbol = "BTCUSDT" }: { symbol?: string 
         }
 
         if (newPrice > 0) {
+          setUnavailable(false);
           setPrice(current => {
             if (current !== null) {
                 setPrevPrice(current);
@@ -67,14 +60,10 @@ export default function LivePriceFeed({ symbol = "BTCUSDT" }: { symbol?: string 
             }
             return newPrice;
           });
-        } else if (!price) {
-          setPrice(fallbackPrice(symbol));
-        }
+        } else throw new Error("Price unavailable");
         window.clearTimeout(timeout);
       } catch {
-        if (!price) {
-            setPrice(fallbackPrice(symbol));
-        }
+        setUnavailable(true);
       }
     };
 
@@ -82,9 +71,11 @@ export default function LivePriceFeed({ symbol = "BTCUSDT" }: { symbol?: string 
     const interval = setInterval(fetchPrice, 5000); // 5s is safer for rate limits
 
     return () => clearInterval(interval);
-  }, [symbol, price]);
+  }, [symbol]);
 
-  if (!price) return <div className="text-4xl font-bold animate-pulse text-white/20">Loading...</div>;
+  if (!price) return <div className="text-xl font-bold text-amber-300">{unavailable ? "Live price unavailable" : "Loading live price…"}</div>;
+
+  const tickChange = prevPrice ? ((price - prevPrice) / prevPrice) * 100 : null;
 
   return (
     <div className="text-center relative">
@@ -105,7 +96,8 @@ export default function LivePriceFeed({ symbol = "BTCUSDT" }: { symbol?: string 
         priceChange === "up" ? "text-green-500" : priceChange === "down" ? "text-red-500" : "text-text-muted"
       }`}>
         {priceChange === "up" ? <ArrowUp size={24} /> : priceChange === "down" ? <ArrowDown size={24} /> : null}
-        {symbol.replace("USDT", "")}/USD {(priceChange === "up" ? "+" : "")}{(Math.random() * 2).toFixed(2)}%
+        {symbol.replace("USDT", "")}/USD {tickChange === null ? "Awaiting next tick" : `${tickChange >= 0 ? "+" : ""}${tickChange.toFixed(4)}% last tick`}
+        {unavailable ? " · feed reconnecting" : ""}
       </div>
     </div>
   );

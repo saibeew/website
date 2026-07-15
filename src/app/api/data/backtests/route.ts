@@ -10,7 +10,7 @@ export async function GET() {
     if (!user) return unauthorizedResponse();
 
     const backtests = await getSql()`
-      select id, created_at, platform, symbol, timeframe, config, status, report_url, result
+      select id, created_at, platform, symbol, timeframe, config, status, report_url, result, worker_id
       from backtests
       where user_id = ${user.id}
       order by created_at desc

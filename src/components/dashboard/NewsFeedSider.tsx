@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquare, ArrowUpRight, Globe, MoreHorizontal, Share2, Copy } from "lucide-react";
+import { MoreHorizontal, Share2, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NewsItem {

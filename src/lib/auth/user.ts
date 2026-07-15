@@ -11,7 +11,10 @@ export interface AuthUser {
   name: string;
 }
 
-const sessionTtlDays = Number(process.env.AUTH_SESSION_DAYS || 30);
+const configuredSessionTtlDays = Number(process.env.AUTH_SESSION_DAYS || 30);
+const sessionTtlDays = Number.isFinite(configuredSessionTtlDays)
+  ? Math.min(Math.max(configuredSessionTtlDays, 1), 30)
+  : 30;
 
 export function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -33,7 +36,7 @@ export function verifyPassword(password: string, storedHash: string) {
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-function hashSessionToken(token: string) {
+export function hashSessionToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
@@ -80,17 +83,7 @@ export async function getUserFromSessionToken(token?: string | null): Promise<Au
 export async function getCurrentUser() {
   const cookieStore = await cookies();
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
-  if (token === "demo-session-token") {
-    return { id: "local-db-unavailable", name: "BEEW Trader", email: "trader@beew.ai" };
-  }
-  try {
-    return await getUserFromSessionToken(token);
-  } catch (error) {
-    if (isDatabaseConnectionError(error)) {
-      return { id: "local-db-unavailable", name: "BEEW Trader", email: "trader@beew.ai" };
-    }
-    throw error;
-  }
+  return getUserFromSessionToken(token);
 }
 
 export async function deleteSession(token?: string | null) {
@@ -104,6 +97,7 @@ export function setSessionCookie(response: NextResponse, token: string, expiresA
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
+    priority: "high",
     path: "/",
     expires: expiresAt,
   });
@@ -124,19 +118,17 @@ export function unauthorizedResponse() {
 }
 
 export function serverErrorResponse(error: unknown) {
+  console.error("Unhandled server error", error);
   if (isDatabaseConnectionError(error)) {
     return databaseUnavailableResponse();
   }
 
-  const message = error instanceof Error ? error.message : "Unexpected server error";
-  return NextResponse.json({ error: message }, { status: 500 });
+  return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
 }
 
 export function databaseUnavailableResponse() {
   return NextResponse.json(
-    {
-      error: "Database connection failed. Verify DATABASE_URL, RDS password, security group access, database name, and POSTGRES_SSL, then redeploy.",
-    },
+    { error: "Service temporarily unavailable. Please try again later." },
     { status: 503 }
   );
 }

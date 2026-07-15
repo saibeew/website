@@ -2,7 +2,7 @@ import Link from "next/link";
 import { fetchNewsById } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { extractEntities } from "@/lib/entities";
-import { Clock, ArrowLeft, ExternalLink, Cpu } from "lucide-react";
+import { ArrowLeft, ExternalLink, Cpu } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 

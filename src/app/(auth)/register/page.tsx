@@ -12,18 +12,20 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const { register } = useStore();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+    setSuccess("");
     setIsRegistering(true);
 
     try {
       const result = await register(name, email, password);
       if (result.success) {
-        window.location.href = "/dashboard";
+        setSuccess(result.message || "Check your email to verify your account.");
       } else {
         setError(result.error || "Registration failed. Email might be taken.");
       }
@@ -77,6 +79,11 @@ export default function RegisterPage() {
                 {error}
               </div>
             )}
+            {success && (
+              <div className="mb-6 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[13px] rounded-lg">
+                {success}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
@@ -118,8 +125,9 @@ export default function RegisterPage() {
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     className="w-full bg-[#0d1525]/80 border border-white/5 rounded-xl pl-12 pr-5 py-4 text-white placeholder:text-white/20 focus:outline-none focus:border-success/50 focus:ring-1 focus:ring-success/20 transition-all"
-                    placeholder="Minimum 8 characters"
+                    placeholder="8+ characters, upper/lowercase and number"
                     minLength={8}
+                    maxLength={128}
                     required
                   />
                 </div>

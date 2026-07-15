@@ -228,8 +228,8 @@ export default function ClipperPanel() {
       } else {
         setActiveJob({ status: "failed", progress: 0, message: data.error || "Clipping pipeline failed" });
       }
-    } catch (err: any) {
-      setActiveJob({ status: "failed", progress: 0, message: err.message || "Request failed" });
+    } catch (err) {
+      setActiveJob({ status: "failed", progress: 0, message: err instanceof Error ? err.message : "Request failed" });
     } finally {
       setLoading(false);
     }
@@ -254,8 +254,8 @@ export default function ClipperPanel() {
       } else {
         alert(`Failed: ${data.error}`);
       }
-    } catch (err: any) {
-      alert(`Error: ${err.message}`);
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : "Request failed"}`);
     }
   };
 

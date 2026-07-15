@@ -58,3 +58,15 @@ npm run lint
 npm test
 npm run build
 ```
+
+## Production release
+
+1. Configure every required value documented in `.env.example`; keep `NEXT_PUBLIC_ENABLE_DEMO_DATA=false`.
+2. Initialize or migrate PostgreSQL with `npm run postgres:init` before directing traffic to a new release.
+3. Verify `GET /api/health` returns HTTP 200 and `status: "ready"`.
+4. Run the release checks locally and require the GitHub Actions workflow on the release branch.
+5. Complete the operational and legal sign-offs in `LAUNCH_CHECKLIST.md`.
+
+The hosted application does not execute MetaTrader binaries. Run a private Windows worker against the authenticated queue protocol documented in `TRADING_WORKER_PROTOCOL.md`; validate it on demo broker accounts before enabling any customer-facing trading action.
+
+Authentication fails closed when PostgreSQL is unavailable. Production must never substitute demo users, simulated trades, or example news for unavailable live services.

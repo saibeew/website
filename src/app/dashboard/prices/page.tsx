@@ -51,11 +51,11 @@ export default function PricesPage() {
       try {
         const response = await fetch(`https://${cluster}/api/v3/ticker/24hr`);
         if (!response.ok) throw new Error("Binance API down");
-        const data = await response.json();
+        const data = await response.json() as Array<{ symbol: string; lastPrice: string; priceChangePercent: string; quoteVolume: string }>;
         
         const filtered = data
-          .filter((item: any) => ASSET_NAMES[item.symbol])
-          .map((item: any, index: number) => ({
+          .filter((item) => ASSET_NAMES[item.symbol])
+          .map((item, index: number) => ({
             rank: index + 1,
             symbol: item.symbol.replace("USDT", ""),
             name: ASSET_NAMES[item.symbol],

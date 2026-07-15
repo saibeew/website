@@ -4,13 +4,12 @@ import os from "os";
 import path from "path";
 import sharp from "sharp";
 import { z } from "zod";
-import { getCurrentUser, isDatabaseConnectionError, unauthorizedResponse } from "@/lib/auth/user";
+import { getCurrentUser, serverErrorResponse, unauthorizedResponse } from "@/lib/auth/user";
 import { BEEW_BRAND, BRAND_TEMPLATES, getBrandTemplate } from "@/lib/studio/brand-assets";
 
 export const dynamic = "force-dynamic";
 
 const STUDIO_TEMP_ROOT = path.join(os.tmpdir(), "beew-studio");
-const BRAND_OUTPUT_ROOT = path.join(STUDIO_TEMP_ROOT, "brand-carousels");
 const PUBLIC_BRAND_ROOT = path.join(process.cwd(), "public", "brand-assets");
 
 const carouselSchema = z.object({
@@ -116,18 +115,15 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    try {
-      const user = await getCurrentUser();
-      if (!user) return unauthorizedResponse();
-    } catch (error) {
-      if (!isDatabaseConnectionError(error)) throw error;
-    }
+    const user = await getCurrentUser();
+    if (!user) return unauthorizedResponse();
 
     const input = carouselSchema.parse(await request.json());
     const template = getBrandTemplate(input.templateId);
     const backgroundDataUri = readBrandAssetDataUri(template.assetPath);
     const jobId = crypto.randomUUID();
-    const outputDir = path.join(BRAND_OUTPUT_ROOT, jobId);
+    const userRoot = path.join(STUDIO_TEMP_ROOT, "users", user.id);
+    const outputDir = path.join(userRoot, "brand-carousels", jobId);
     fs.mkdirSync(outputDir, { recursive: true });
 
     const slides = await Promise.all(Array.from({ length: input.slideCount }, async (_, index) => {
@@ -141,7 +137,7 @@ export async function POST(request: Request) {
         slideCount: input.slideCount,
       });
       await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(outputPath);
-      const relativePath = path.relative(STUDIO_TEMP_ROOT, outputPath);
+      const relativePath = path.relative(userRoot, outputPath);
       return {
         index: index + 1,
         path: outputPath,
@@ -154,9 +150,6 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: error.issues[0]?.message || "Invalid carousel data" }, { status: 400 });
     }
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : "Failed to generate carousel" },
-      { status: 500 }
-    );
+    return serverErrorResponse(error);
   }
 }

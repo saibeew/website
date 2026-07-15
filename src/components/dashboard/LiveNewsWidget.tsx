@@ -8,7 +8,6 @@ import {
   Cpu, 
   ExternalLink, 
   X, 
-  Newspaper, 
   AlertTriangle 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -99,7 +98,7 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
   const [selectedArticle, setSelectedArticle] = useState<NewsItem | null>(null);
   const [newIds, setNewIds] = useState<Set<number>>(new Set());
   const [newCount, setNewCount] = useState(0);
-  const [sourceMode, setSourceMode] = useState<"live" | "database" | "demo" | "unknown">("unknown");
+  const [sourceMode, setSourceMode] = useState<"live" | "database" | "preview" | "unavailable" | "unknown">("unknown");
   const [aiExplanations, setAiExplanations] = useState<Record<number, string>>({});
   const [aiLoadingId, setAiLoadingId] = useState<number | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -119,10 +118,13 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
       }
 
       const res = await fetch(url, { cache: "no-store" });
-      if (!res.ok) throw new Error("Failed to fetch news stream.");
       const data = await res.json();
+      if (!res.ok) {
+        setSourceMode("unavailable");
+        throw new Error(typeof data.error === "string" ? data.error : "Failed to fetch news stream.");
+      }
       const incoming = data.items || [];
-      setSourceMode(data.source || (data.fallback ? "demo" : "unknown"));
+      setSourceMode(data.source === "live" || data.source === "database" || data.source === "preview" ? data.source : "unknown");
 
       if (isInitial) {
         incoming.forEach((i: NewsItem) => knownIds.current.add(i.id));
@@ -141,7 +143,7 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
       }
       setLastUpdated(new Date());
       setError(null);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       if (isInitial) setError("Unable to connect to the news stream.");
     } finally {
@@ -221,7 +223,7 @@ const LiveNewsWidget = memo(({ symbol = "XAUUSD", layout = "compact" }: LiveNews
             { label: "Total Articles", value: items.length, color: "text-white" },
             { label: "New Updates", value: newCount, color: "text-primary" },
             { label: "Filter", value: activeCategory === "all" ? "All" : activeCategory, color: "text-warning" },
-            { label: "Live Connection", value: sourceMode === "demo" ? "Demo Feed" : sourceMode === "database" ? "Local DB" : sourceMode === "live" ? "Live Feed" : lastUpdated ? lastUpdated.toLocaleTimeString() : "Syncing...", color: "text-secondary" },
+            { label: "Data Source", value: sourceMode === "unavailable" ? "Unavailable" : sourceMode === "preview" ? "Preview Data" : sourceMode === "database" ? "Database" : sourceMode === "live" ? "Live Feed" : lastUpdated ? lastUpdated.toLocaleTimeString() : "Syncing...", color: sourceMode === "unavailable" ? "text-red-400" : sourceMode === "preview" ? "text-amber-400" : "text-secondary" },
           ].map((stat, idx) => (
             <div key={idx} className="bg-surface/20 border border-white/5 rounded-xl p-3 backdrop-blur-sm shadow-xl flex flex-col justify-center">
               <span className="text-[10px] font-medium text-text-muted uppercase tracking-wider">{stat.label}</span>

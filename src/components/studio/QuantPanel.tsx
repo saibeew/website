@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Cpu, Loader2, Sparkles, AlertCircle, FileText, Image as ImageIcon, Calendar } from "lucide-react";
 import JobStatusCard from "./JobStatusCard";
 
@@ -20,13 +21,16 @@ interface Script {
   warnings: string[];
 }
 
+type JobStatus = "idle" | "queued" | "processing" | "done" | "failed";
+type TrendSignal = { title: string; source?: string; link?: string; tags: string[] };
+
 export default function QuantPanel({ prefilledTrendTitle }: { prefilledTrendTitle?: string }) {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [selectedSignalId, setSelectedSignalId] = useState("");
   const [customDescription, setCustomDescription] = useState("");
   
   const [loading, setLoading] = useState(false);
-  const [activeJob, setActiveJob] = useState<{ status: any; progress: number; message: string } | null>(null);
+  const [activeJob, setActiveJob] = useState<{ status: JobStatus; progress: number; message: string } | null>(null);
 
   const [result, setResult] = useState<{
     signal: Signal;
@@ -40,10 +44,10 @@ export default function QuantPanel({ prefilledTrendTitle }: { prefilledTrendTitl
       const data = await res.json();
       if (data.success) {
         // Convert trend radar signals to selection format
-        const trendSignals = data.trends.slice(0, 5).map((t: any, index: number) => ({
+        const trendSignals = (data.trends as TrendSignal[]).slice(0, 5).map((t, index: number) => ({
           id: `${t.source || "trend"}-${t.link || t.title || index}-${index}`,
           title: t.title,
-          source: t.source,
+          source: t.source || "Market feed",
           bias: t.tags.includes("bearish") ? "Bearish" : "Bullish",
           symbol: t.tags[0]?.toUpperCase() || "GLOBAL",
           description: t.title,
@@ -109,8 +113,8 @@ export default function QuantPanel({ prefilledTrendTitle }: { prefilledTrendTitl
       } else {
         setActiveJob({ status: "failed", progress: 0, message: data.error || "Generation failed" });
       }
-    } catch (err: any) {
-      setActiveJob({ status: "failed", progress: 0, message: err.message || "Request failed" });
+    } catch (err) {
+      setActiveJob({ status: "failed", progress: 0, message: err instanceof Error ? err.message : "Request failed" });
     } finally {
       setLoading(false);
     }
@@ -136,8 +140,8 @@ export default function QuantPanel({ prefilledTrendTitle }: { prefilledTrendTitl
       } else {
         alert(`Failed: ${data.error}`);
       }
-    } catch (err: any) {
-      alert(`Error: ${err.message}`);
+    } catch (err) {
+      alert(`Error: ${err instanceof Error ? err.message : "Request failed"}`);
     }
   };
 
@@ -257,9 +261,11 @@ export default function QuantPanel({ prefilledTrendTitle }: { prefilledTrendTitl
                   Visual Explainer Card
                 </h3>
                 <div className="aspect-[9/16] max-h-[350px] mx-auto rounded-lg overflow-hidden border border-white/15 bg-gray-950 mt-4 relative">
-                  <img
+                  <Image
                     src={result.chartUrl}
                     alt={`${result.signal.symbol} visual explainer card`}
+                    fill
+                    unoptimized
                     className="h-full w-full object-contain"
                   />
                 </div>

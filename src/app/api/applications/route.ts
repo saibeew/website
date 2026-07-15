@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSql, isPostgresConfigured } from "@/lib/postgres/client";
 import { databaseUnavailableResponse, serverErrorResponse } from "@/lib/auth/user";
+import { enforceRateLimit, rejectOversizedRequest } from "@/lib/security/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -12,25 +13,6 @@ const applicationSchema = z.object({
   broker: z.string().trim().optional().default(""),
   accountSize: z.enum(["Under $25K", "$25K-$50K", "$50K-$100K", "$100K-$250K", "$250K+"]),
 });
-
-async function ensureLeadApplicationsTable() {
-  await getSql().unsafe(`
-    create table if not exists public.beta_applications (
-      id uuid primary key default gen_random_uuid(),
-      created_at timestamptz not null default now(),
-      updated_at timestamptz not null default now(),
-      name text not null,
-      email text not null,
-      country text not null,
-      broker text,
-      account_size text not null,
-      status text not null default 'pending',
-      source text not null default 'landing_page'
-    );
-    create unique index if not exists beta_applications_email_unique_idx on public.beta_applications (email);
-    create index if not exists beta_applications_created_idx on public.beta_applications (created_at desc);
-  `);
-}
 
 async function sendConfirmationEmail(input: z.infer<typeof applicationSchema>) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -70,12 +52,14 @@ async function sendConfirmationEmail(input: z.infer<typeof applicationSchema>) {
 
 export async function POST(request: Request) {
   try {
+    const sizeError = rejectOversizedRequest(request, 16_384);
+    if (sizeError) return sizeError;
+    const rateLimitError = enforceRateLimit(request, { namespace: "applications", limit: 5, windowMs: 60 * 60_000 });
+    if (rateLimitError) return rateLimitError;
     if (!isPostgresConfigured()) return databaseUnavailableResponse();
 
     const input = applicationSchema.parse(await request.json());
     const sql = getSql();
-    await ensureLeadApplicationsTable();
-
     const [existing] = await sql`
       select id from beta_applications where email = ${input.email.toLowerCase()} limit 1
     `;

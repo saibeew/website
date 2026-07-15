@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { AlertCircle, ChevronRight, BarChart2, Filter } from "lucide-react";
-import GlassCard from "@/components/ui/GlassCard";
+import { BarChart2 } from "lucide-react";
 
 interface Event {
   id: string;
@@ -15,7 +14,7 @@ interface Event {
   forecast: string;
   previous: string;
   bankForecast: string;
-  playbook: any;
+  playbook: Record<string, unknown> | null;
 }
 
 export default function EconomicCalendar({ events, onEventClick }: { events: Event[], onEventClick: (e: Event) => void }) {

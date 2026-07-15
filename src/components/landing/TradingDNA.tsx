@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 
 interface Node {
   x: number;
@@ -15,8 +15,6 @@ interface Node {
 export default function TradingDNA() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouse = useRef({ x: 0, y: 0, active: false });
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;

@@ -19,10 +19,12 @@ type FetchNewsOptions = {
 };
 
 export function fetchNews(_options: FetchNewsOptions = {}): NewsItem[] {
+  void _options;
   return [];
 }
 
 export function fetchNewsById(_id: number): NewsItem | undefined {
+  void _id;
   return undefined;
 }
 
@@ -31,5 +33,7 @@ export function fetchCategories(): string[] {
 }
 
 export function countNews(_category = "all", _symbol = "all") {
+  void _category;
+  void _symbol;
   return 0;
 }

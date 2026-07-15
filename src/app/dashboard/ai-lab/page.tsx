@@ -47,7 +47,7 @@ export default function AILabPage() {
           text: data.reply || "Connection to neural node lost.", 
           timestamp: new Date().toLocaleTimeString() 
         }]);
-      } catch (e) {
+      } catch {
         setMessages(prev => [...prev, { 
           role: "ai", 
           text: "System Error: Failed to reach AI node.", 

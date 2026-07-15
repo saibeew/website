@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useStore, Trade } from "@/store/useStore";
+import { useStore } from "@/store/useStore";
 import GlassCard from "@/components/ui/GlassCard";
 import CotReportView from "@/components/dashboard/fundamentals/CotReportView";
 import { 
@@ -10,8 +10,8 @@ import {
 } from 'recharts';
 import { 
     TrendingUp, ShieldCheck, Target, Zap, 
-    Microscope, AlertTriangle, Activity as PulseIcon, Map, Search, Eye, Download, LayoutDashboard, Database, Activity,
-    BrainCircuit, Info, Filter, ArrowUpRight, ArrowDownRight, HelpCircle
+    Microscope, AlertTriangle, Activity as PulseIcon, Search, LayoutDashboard, Database, Activity,
+    BrainCircuit, Filter, HelpCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -125,7 +125,8 @@ export default function JournalPage() {
     const monteCarloPaths = Array.from({ length: 15 }, (_, pathIndex) => {
         let currentSimPnl = totalPnL;
         return Array.from({ length: 40 }, (_, tradeIndex) => {
-            const randomTrade = filteredTrades[Math.floor(Math.random() * filteredTrades.length)];
+            const pseudoRandom = Math.abs(Math.sin((tradeIndex + 1) * (pathIndex + 1) * (simKey + 1)) * 10_000) % 1;
+            const randomTrade = filteredTrades[Math.floor(pseudoRandom * filteredTrades.length)];
             currentSimPnl += (randomTrade.pnl || 0);
             return { x: tradeIndex, y: currentSimPnl, path: pathIndex };
         });
@@ -138,12 +139,7 @@ export default function JournalPage() {
     const R = avgLoss === 0 ? 10 : avgWin / avgLoss;
     const ror = Math.pow((1 - (p - q/R)) / (1 + (p - q/R)), 2) * 100;
     
-    // AI Narrative Logic
     const profitFactor = grossLoss === 0 ? grossProfit : grossProfit / grossLoss;
-    let aiOpinion = "Portfolio stability within parameters.";
-    if (profitFactor > 2) aiOpinion = "High edge detected. Strategy scale-up recommended.";
-    else if (profitFactor < 1.2 && filteredTrades.length > 5) aiOpinion = "Efficiency leak detected. Tighten stop-loss parameters.";
-    if (maxDD > 15) aiOpinion = "Drawdown alert. Reducing session leverage by 25% advised.";
 
     return {
         total: filteredTrades.length,
@@ -163,7 +159,7 @@ export default function JournalPage() {
 
   // Dynamic AI Diagnostic Hook
   useEffect(() => {
-    if (!analytics || isAiLoading) return;
+    if (!analytics) return;
 
     const fetchAiDiagnosis = async () => {
         setIsAiLoading(true);
@@ -185,7 +181,7 @@ export default function JournalPage() {
             });
             const data = await res.json();
             setAiOpinion(data.summary || "Diagnostic systems stabilized. Edge remains intact.");
-        } catch (e) {
+        } catch {
             setAiOpinion("Error synchronizing with AI Brain.");
         } finally {
             setIsAiLoading(false);
@@ -194,7 +190,7 @@ export default function JournalPage() {
 
     const timeout = setTimeout(fetchAiDiagnosis, 1000); // Debounce to avoid excessive API calls
     return () => clearTimeout(timeout);
-  }, [analytics?.total, filterSymbol]);
+  }, [analytics, filterSymbol]);
 
   const uniqueSymbols = ["ALL", ...Array.from(new Set(trades.map(t => t.symbol)))];
 

@@ -6,7 +6,7 @@ export interface StrategyNode {
     label: string;
     x: number;
     y: number;
-    data?: any;
+    data?: Record<string, unknown>;
 }
 
 export interface StrategyEdge {

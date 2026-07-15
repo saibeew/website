@@ -18,7 +18,7 @@ export async function fetchGdeltNews(): Promise<FeedItem[]> {
     const data = await response.json();
     if (!data.articles) return [];
 
-    return data.articles.map((art: any) => ({
+    return data.articles.map((art: { title?: string; url?: string; seendate?: string; socialimage?: string; source?: string }) => ({
       title: art.title || "",
       link: art.url || "",
       pubDate: art.seendate || new Date().toISOString(),
@@ -28,8 +28,8 @@ export async function fetchGdeltNews(): Promise<FeedItem[]> {
       category: "general" as const,
       weight: 0.7,
     }));
-  } catch (error: any) {
-    console.warn("[Trends] Failed to fetch GDELT news:", error.message || error);
+  } catch (error) {
+    console.warn("[Trends] Failed to fetch GDELT news:", error instanceof Error ? error.message : error);
     return [];
   }
 }

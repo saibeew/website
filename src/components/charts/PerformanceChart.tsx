@@ -1,7 +1,6 @@
 "use client";
 
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { motion } from 'framer-motion';
 
 const data = [
   { name: 'Jan', value: 4000 },

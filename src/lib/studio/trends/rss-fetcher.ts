@@ -33,8 +33,8 @@ export async function fetchRssFeed(source: TrendSource): Promise<FeedItem[]> {
       category: source.category,
       weight: source.weight,
     }));
-  } catch (error: any) {
-    console.warn(`[Trends] Failed to fetch feed ${source.name}:`, error.message || error);
+  } catch (error) {
+    console.warn(`[Trends] Failed to fetch feed ${source.name}:`, error instanceof Error ? error.message : error);
     return [];
   }
 }

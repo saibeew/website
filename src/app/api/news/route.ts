@@ -17,58 +17,52 @@ type RawNewsItem = {
   ai_summarized: boolean;
 };
 
-const DEMO_NEWS = [
-  {
-    id: 900001,
-    title: "Gold holds near session highs as traders weigh Fed outlook",
-    body: "XAUUSD gains traction as market participants position around macro data and rate expectations.",
-    category: "macro",
-    source_url: "",
-    source: "beew.ai Example Feed",
-    published_at: new Date().toISOString(),
-    collected_at: new Date().toISOString(),
-    processed: true,
-    ai_summarized: true,
-  },
-  {
-    id: 900002,
-    title: "Bitcoin volatility spikes ahead of major liquidity session",
-    body: "BTC remains highly reactive to broader risk sentiment and exchange flow conditions.",
-    category: "crypto",
-    source_url: "",
-    source: "beew.ai Example Feed",
-    published_at: new Date().toISOString(),
-    collected_at: new Date().toISOString(),
-    processed: true,
-    ai_summarized: true,
-  },
-  {
-    id: 900003,
-    title: "FX markets stabilize as dollar demand pauses",
-    body: "EURUSD and GBPUSD are consolidating while traders wait for the next catalyst.",
-    category: "forex",
-    source_url: "",
-    source: "beew.ai Example Feed",
-    published_at: new Date().toISOString(),
-    collected_at: new Date().toISOString(),
-    processed: true,
-    ai_summarized: false,
-  },
-  {
-    id: 900004,
-    title: "Energy prices cool after a strong intraday squeeze",
-    body: "Oil and commodity pairs are rotating as supply expectations settle.",
-    category: "commodity",
-    source_url: "",
-    source: "beew.ai Example Feed",
-    published_at: new Date().toISOString(),
-    collected_at: new Date().toISOString(),
-    processed: true,
-    ai_summarized: false,
-  },
-];
-
 const LIVE_SOURCE_TIMEOUT_MS = 6000;
+
+function getPreviewNews(): RawNewsItem[] {
+  const now = Date.now();
+  return [
+    {
+      id: -101,
+      title: "Preview: Central-bank policy expectations remain the main FX volatility driver",
+      body: "Demonstration item for the local preview. Connect a licensed news provider before production launch.",
+      category: "macro",
+      source_url: "",
+      source: "Beew preview dataset",
+      score: null,
+      published_at: new Date(now - 12 * 60_000).toISOString(),
+      collected_at: new Date(now).toISOString(),
+      processed: true,
+      ai_summarized: false,
+    },
+    {
+      id: -102,
+      title: "Preview: Gold traders monitor real yields and dollar momentum",
+      body: "Demonstration item showing how commodity intelligence is categorized. This is not a live market report.",
+      category: "commodity",
+      source_url: "",
+      source: "Beew preview dataset",
+      score: null,
+      published_at: new Date(now - 28 * 60_000).toISOString(),
+      collected_at: new Date(now).toISOString(),
+      processed: true,
+      ai_summarized: false,
+    },
+    {
+      id: -103,
+      title: "Preview: Crypto liquidity conditions can amplify short-term price moves",
+      body: "Demonstration item for Studio and News acceptance testing. Do not treat it as current investment information.",
+      category: "crypto",
+      source_url: "",
+      source: "Beew preview dataset",
+      score: null,
+      published_at: new Date(now - 44 * 60_000).toISOString(),
+      collected_at: new Date(now).toISOString(),
+      processed: true,
+      ai_summarized: false,
+    },
+  ];
+}
 
 function normalizeCategory(rawCategory: string | null, title: string, body: string) {
   const text = `${rawCategory || ""} ${title} ${body}`.toLowerCase();
@@ -194,13 +188,13 @@ function parseRssItems(xml: string, source: string): RawNewsItem[] {
 
 async function fetchLiveNews(category: string, symbol: string, limit: number) {
   const queries = buildLiveQueries(category, symbol);
-  const results: RawNewsItem[] = [];
-
-  for (const query of queries) {
-    const xml = await fetchXmlWithTimeout(buildGoogleNewsUrl(query));
-    if (!xml) continue;
-    results.push(...parseRssItems(xml, "Google News Live"));
-  }
+  const feeds = await Promise.all(
+    queries.map(async (query) => {
+      const xml = await fetchXmlWithTimeout(buildGoogleNewsUrl(query));
+      return xml ? parseRssItems(xml, "Google News Live") : [];
+    })
+  );
+  const results = feeds.flat();
 
   const deduped = Array.from(
     new Map(results.map((item) => [`${item.title.toLowerCase()}::${item.source_url}`, item])).values()
@@ -249,29 +243,21 @@ export async function GET(request: Request) {
       ? items
       : items.filter((item) => item.category === category);
 
+    if (filteredItems.length === 0 && process.env.NODE_ENV === "development") {
+      const previewItems = getPreviewNews().filter((item) => category === "all" || item.category === category);
+      return NextResponse.json({ items: previewItems, total: previewItems.length, limit, offset, source: "preview" });
+    }
+
     return NextResponse.json({ items: filteredItems, total, limit, offset, source: "database" });
-  } catch (err: any) {
+  } catch (err) {
     console.error("API /api/news error:", err);
-
-    const fallbackItems = DEMO_NEWS.filter((item) => {
-      if (category !== "all" && item.category !== category) return false;
-      if (symbol === "all") return true;
-
-      const symbolText = symbol.toUpperCase();
-      if (symbolText.includes("BTC") || symbolText.includes("ETH")) return item.category === "crypto";
-      if (symbolText.includes("XAU") || symbolText.includes("GOLD") || symbolText.includes("OIL")) return item.category === "commodity" || item.category === "macro";
-      if (symbolText.includes("USD") || symbolText.includes("EUR") || symbolText.includes("GBP") || symbolText.includes("JPY")) return item.category === "forex" || item.category === "macro";
-      return true;
-    });
-
     return NextResponse.json({
-      items: fallbackItems,
-      total: fallbackItems.length,
+      items: [],
+      total: 0,
       limit,
       offset,
-      fallback: true,
-      source: "demo",
-      error: `Using demo feed because the local news database is unavailable: ${err instanceof Error ? err.message : "unknown error"}`,
-    });
+      source: "unavailable",
+      error: "Live news is temporarily unavailable.",
+    }, { status: 503 });
   }
 }

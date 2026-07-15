@@ -51,7 +51,7 @@ export interface DeployedStrategy {
   timeframe?: string;
   lotSize: number;
   maxDrawdown: number;
-  status: "Running" | "Paused" | "Halted";
+  status: "Pending" | "Processing" | "Running" | "Paused" | "Halted" | "Failed";
   accountType: string;
   startTime: string;
   commandPath?: string;
@@ -71,7 +71,7 @@ interface StoreState {
   user: User | null;
   initializeAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string; message?: string }>;
   logout: () => Promise<void>;
 
   isSidebarOpen: boolean;
@@ -118,7 +118,6 @@ interface StoreState {
 const isDemoDataEnabled = process.env.NEXT_PUBLIC_ENABLE_DEMO_DATA === "true";
 const defaultInitialBalance = Number(process.env.NEXT_PUBLIC_DEFAULT_INITIAL_BALANCE || process.env.NEXT_PUBLIC_INITIAL_BALANCE || 10000);
 const defaultWatchlist = isDemoDataEnabled ? ["XAUUSD", "GBPJPY", "GBPUSD", "BTCUSD", "ETHUSD"] : [];
-const fallbackUser: User = { id: "local-db-unavailable", name: "BEEW Trader", email: "trader@beew.ai" };
 
 class ApiRequestError extends Error {
   status: number;
@@ -199,10 +198,6 @@ export const useStore = create<StoreState>((set) => ({
       const data = await apiRequest<{ user: User | null }>("/api/auth/session");
       set({ isAuthenticated: Boolean(data.user), authInitialized: true, user: data.user });
     } catch (error) {
-      if (isDatabaseUnavailableError(error)) {
-        set({ isAuthenticated: true, authInitialized: true, user: fallbackUser });
-        return;
-      }
       if (!isUnauthorizedError(error) && !isDatabaseUnavailableError(error)) {
         console.error("Failed to initialize auth:", error);
       }
@@ -223,12 +218,12 @@ export const useStore = create<StoreState>((set) => ({
   },
   register: async (name, email, password) => {
     try {
-      const data = await apiRequest<{ user: User }>("/api/auth/register", {
+      const data = await apiRequest<{ success: boolean; message: string }>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify({ name, email, password }),
       });
-      set({ isAuthenticated: true, authInitialized: true, user: data.user });
-      return { success: true };
+      set({ isAuthenticated: false, authInitialized: true, user: null });
+      return { success: true, message: data.message };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : "Registration failed." };
     }

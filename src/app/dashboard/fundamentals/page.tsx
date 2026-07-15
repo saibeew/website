@@ -5,7 +5,7 @@ import AssetSelector from "@/components/dashboard/AssetSelector";
 import MarketChart from "@/components/dashboard/MarketChart";
 import LiveNewsWidget from "@/components/dashboard/LiveNewsWidget";
 import BiasNarrative from "@/components/dashboard/BiasNarrative";
-import { Info, LayoutGrid, FileText, Calendar as CalendarIcon, Search } from "lucide-react";
+import { LayoutGrid, FileText, Calendar as CalendarIcon, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 

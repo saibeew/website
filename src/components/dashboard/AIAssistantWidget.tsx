@@ -49,7 +49,7 @@ export default function AIAssistantWidget() {
       } else {
          setMessages(prev => [...prev, { role: "ai", text: data.reply }]);
       }
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, { role: "ai", text: "Connection failed. Please try again." }]);
     } finally {
       setIsLoading(false);

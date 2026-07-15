@@ -6,8 +6,7 @@ import {
   Upload, 
   Settings, 
   TrendingUp, 
-  Cpu,
-  FileText
+  Cpu
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +32,7 @@ export default function BacktestPage() {
   const [deposit, setDeposit] = useState("10000");
   const [leverage, setLeverage] = useState("1:100");
 
-  const [backtests, setBacktests] = useState<any[]>([]);
+  const [backtests, setBacktests] = useState<Array<{ id: string; created_at: string; symbol: string; status: string; config?: { eaName?: string } }>>([]);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -94,8 +93,8 @@ export default function BacktestPage() {
 
         alert(data.message);
 
-    } catch (err: any) {
-        setError(err.message);
+    } catch (err) {
+        setError(err instanceof Error ? err.message : "Backtest request failed");
     } finally {
         setIsSimulating(false);
     }
@@ -296,14 +295,14 @@ export default function BacktestPage() {
                     <p className="text-sm text-text-muted">No runs yet.</p>
                  ) : (
                      <div className="space-y-3">
-                        {backtests.map((run: any) => (
+                        {backtests.map((run) => (
                             <div key={run.id} className="p-3 bg-white/5 rounded-lg border border-white/5 flex justify-between items-center">
                                 <div>
                                     <div className="text-sm font-medium text-white">{run.config?.eaName || "Unknown Strategy"}</div>
                                     <div className="text-xs text-text-muted">{new Date(run.created_at).toLocaleDateString()} • {run.symbol}</div>
                                 </div>
                                 <div className={`text-xs px-2 py-1 rounded ${
-                                    run.status === 'running' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'
+                                    run.status === 'completed' ? 'bg-green-500/20 text-green-400' : run.status === 'failed' ? 'bg-red-500/20 text-red-400' : run.status === 'running' || run.status === 'processing' ? 'bg-blue-500/20 text-blue-400' : 'bg-amber-500/20 text-amber-300'
                                 }`}>
                                     {run.status}
                                 </div>
@@ -312,19 +311,16 @@ export default function BacktestPage() {
                      </div>
                  )}
 
-                 <button className="w-full mt-2 text-xs text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1">
-                    <FileText size={12} />
-                    View Detailed Reports
-                 </button>
+                 <p className="mt-2 text-center text-xs text-text-muted">Detailed reports appear after verified worker completion.</p>
             </div>
 
             <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-5">
                 <div className="flex gap-3">
                     <Cpu className="text-blue-400 shrink-0" size={20} />
                     <div>
-                        <h4 className="text-sm font-medium text-blue-100">Cloud Agents Available</h4>
+                        <h4 className="text-sm font-medium text-blue-100">Private worker required</h4>
                         <p className="text-xs text-blue-200/60 mt-1">
-                            Your enterprise plan includes 10 dedicated cloud agents for parallel optimization.
+                            This web preview queues jobs but does not bundle MetaTrader terminals or optimization agents.
                         </p>
                     </div>
                 </div>

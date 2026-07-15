@@ -1,38 +1,18 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, unauthorizedResponse, serverErrorResponse } from "@/lib/auth/user";
 import { createStudioJob } from "@/lib/studio/jobs";
-import fs from "fs";
-import path from "path";
 
 export const dynamic = "force-dynamic";
 
-function isLocalStudioProcessingEnabled() {
-  return process.env.NODE_ENV === "development" && process.env.ENABLE_LOCAL_STUDIO_PROCESSING === "true";
-}
-
-function validateLocalVideoPath(localFilePath?: string) {
-  if (!localFilePath) return undefined;
-
-  let resolved = path.resolve(localFilePath.replace(/^["']|["']$/g, ""));
-  if (!fs.existsSync(resolved) && fs.existsSync(`${resolved}.mp4`)) {
-    resolved = `${resolved}.mp4`;
+function supportedSourceUrl(value: unknown) {
+  if (typeof value !== "string" || !value.trim()) return undefined;
+  try {
+    const url = new URL(value.trim());
+    const allowedHosts = new Set(["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"]);
+    return url.protocol === "https:" && allowedHosts.has(url.hostname.toLowerCase()) ? url.toString() : undefined;
+  } catch {
+    return undefined;
   }
-
-  if (!fs.existsSync(resolved)) {
-    throw new Error(`Local video file does not exist: ${resolved}`);
-  }
-
-  const stat = fs.statSync(resolved);
-  if (!stat.isFile()) {
-    throw new Error(`Local path must be a video file, not a folder: ${resolved}`);
-  }
-
-  const ext = path.extname(resolved).toLowerCase();
-  if (![".mp4", ".mov", ".m4v", ".webm", ".avi", ".mkv"].includes(ext)) {
-    throw new Error(`Local path must point to a video file: ${resolved}`);
-  }
-
-  return resolved;
 }
 
 export async function GET() {
@@ -40,17 +20,12 @@ export async function GET() {
     const user = await getCurrentUser();
     if (!user) return unauthorizedResponse();
 
-    if (!isLocalStudioProcessingEnabled()) {
-      return NextResponse.json({
-        success: true,
-        ffmpegAvailable: false,
-        localProcessingEnabled: false,
-      });
-    }
-
-    const { isFfmpegInstalled } = await import("@/lib/studio/clipper");
-    const ffmpegOk = await isFfmpegInstalled();
-    return NextResponse.json({ success: true, ffmpegAvailable: ffmpegOk, localProcessingEnabled: true });
+    return NextResponse.json({
+      success: true,
+      ffmpegAvailable: false,
+      localProcessingEnabled: false,
+      workerProcessing: true,
+    });
   } catch (error) {
     return serverErrorResponse(error);
   }
@@ -71,24 +46,22 @@ export async function POST(req: Request) {
       );
     }
 
-    let cleanLocalFilePath: string | undefined;
     const submittedLocalFilePath = typeof localFilePath === "string" && localFilePath.trim() ? localFilePath.trim() : undefined;
-    if (isLocalStudioProcessingEnabled()) {
-      try {
-        cleanLocalFilePath = validateLocalVideoPath(submittedLocalFilePath);
-      } catch (error) {
-        return NextResponse.json(
-          { success: false, error: error instanceof Error ? error.message : "Invalid local video path" },
-          { status: 400 }
-        );
-      }
-    } else {
-      cleanLocalFilePath = submittedLocalFilePath?.replace(/^["']|["']$/g, "");
+    if (submittedLocalFilePath) {
+      return NextResponse.json(
+        { success: false, error: "Server-local file paths are not accepted. Upload media or provide a supported HTTPS source URL." },
+        { status: 400 }
+      );
+    }
+
+    const cleanSourceUrl = supportedSourceUrl(sourceUrl);
+    if (sourceUrl && !cleanSourceUrl) {
+      return NextResponse.json({ success: false, error: "Only HTTPS YouTube URLs are supported." }, { status: 400 });
     }
 
     const clipperOptions = {
-      sourceUrl: typeof sourceUrl === "string" && sourceUrl.trim() ? sourceUrl.trim() : undefined,
-      localFilePath: cleanLocalFilePath,
+      sourceUrl: cleanSourceUrl,
+      localFilePath: undefined,
       clipCount: typeof clipCount === "number" ? clipCount : 5,
       targetDurationSec: typeof targetDurationSec === "number" ? targetDurationSec : 30,
     };
@@ -111,17 +84,11 @@ export async function POST(req: Request) {
         success: true,
         queued: true,
         job,
-        message:
-          isLocalStudioProcessingEnabled()
-            ? "Clipper job queued. Run npm.cmd run studio:worker to process it with FFmpeg, yt-dlp, Python, and Whisper."
-            : "Clipper job queued in hosted mode. Connect a Studio worker service to process videos with FFmpeg, yt-dlp, Python, and Whisper.",
+        message: "Clipper job queued for the isolated Studio worker.",
       },
       { status: 202 }
     );
-  } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error?.message || "Clipper pipeline failed" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return serverErrorResponse(error);
   }
 }

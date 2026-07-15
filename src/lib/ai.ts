@@ -61,8 +61,8 @@ export async function getAiResponse(prompt: string, jsonMode: boolean = false) {
             return jsonMatch ? jsonMatch[0] : text;
         }
         return text;
-    } catch (geminiError: any) {
-        console.warn("Gemini Error, falling back to OpenAI:", geminiError?.message || geminiError);
+    } catch (geminiError) {
+        console.warn("Gemini Error, falling back to OpenAI:", geminiError instanceof Error ? geminiError.message : geminiError);
         
         try {
             const response = await openai.chat.completions.create({
@@ -74,8 +74,8 @@ export async function getAiResponse(prompt: string, jsonMode: boolean = false) {
                 response_format: jsonMode ? { type: "json_object" } : undefined,
             });
             return response.choices[0].message.content;
-        } catch (openaiError: any) {
-            console.error("OpenAI Fallback Error:", openaiError?.message || openaiError);
+        } catch (openaiError) {
+            console.error("OpenAI Fallback Error:", openaiError instanceof Error ? openaiError.message : openaiError);
 
             if (jsonMode) {
                 return JSON.stringify({

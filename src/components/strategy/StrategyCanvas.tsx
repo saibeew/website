@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, useDragControls } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, type PanInfo } from "framer-motion";
 import styles from "./StrategyCanvas.module.css";
 import GlassCard from "../ui/GlassCard";
-import { X, Plus, Play, Brain, ShieldAlert, Trash2 } from "lucide-react";
+import { X, Plus, Play, Brain, Trash2 } from "lucide-react";
 import { useStrategyStore } from "@/store/useStrategyStore";
 import { auditStrategy } from "@/lib/strategy_auditor";
 
@@ -13,7 +13,7 @@ export default function StrategyCanvas() {
   const [connecting, setConnecting] = useState<string | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const handleDrag = (id: string, info: any) => {
+  const handleDrag = (id: string, info: PanInfo) => {
     if (canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
         updateNodePosition(id, info.point.x - rect.left - 80, info.point.y - rect.top - 40);

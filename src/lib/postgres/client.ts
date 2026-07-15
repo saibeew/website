@@ -3,7 +3,6 @@ import postgres from "postgres";
 type PostgresClient = ReturnType<typeof postgres>;
 
 declare global {
-  // eslint-disable-next-line no-var
   var __beewPostgresSql: PostgresClient | undefined;
 }
 

@@ -6,10 +6,10 @@ export async function publishToTelegram(params: {
   const chatId = process.env.TELEGRAM_CHAT_ID?.trim().replace(/^["']|["']$/g, "");
 
   if (!token || !chatId) {
-    console.warn("[Publisher] Telegram credentials missing. Simulating publish.");
+    console.error("[Publisher] Telegram credentials are missing.");
     return {
-      success: true,
-      externalId: `mock_tg_msg_${Date.now()}`,
+      success: false,
+      error: "Telegram publishing is not configured.",
     };
   }
 
@@ -21,15 +21,15 @@ export async function publishToTelegram(params: {
     const localMediaNote = mediaUrl && !isPublicMediaUrl ? `\n\nMedia output: ${mediaUrl}` : "";
     
     let url = `https://api.telegram.org/bot${token}/sendMessage`;
-    const body: Record<string, any> = { chat_id: chatId };
+    const body: Record<string, string> = { chat_id: chatId };
 
     if (isVideo) {
       url = `https://api.telegram.org/bot${token}/sendVideo`;
-      body.video = mediaUrl;
+      body.video = mediaUrl!;
       body.caption = params.caption || "";
     } else if (isPhoto) {
       url = `https://api.telegram.org/bot${token}/sendPhoto`;
-      body.photo = mediaUrl;
+      body.photo = mediaUrl!;
       body.caption = params.caption || "";
     } else {
       body.text = `${params.caption || "Beew Studio Update"}${localMediaNote}`;
@@ -50,11 +50,12 @@ export async function publishToTelegram(params: {
       success: true,
       externalId: String(data.result.message_id),
     };
-  } catch (error: any) {
-    console.error("[Publisher] Telegram publish failed:", error.message || error);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[Publisher] Telegram publish failed:", message);
     return {
       success: false,
-      error: error.message || String(error),
+      error: message,
     };
   }
 }

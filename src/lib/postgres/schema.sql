@@ -9,7 +9,8 @@ create table if not exists public.app_users (
   updated_at timestamptz not null default now(),
   email text not null,
   name text,
-  password_hash text not null
+  password_hash text not null,
+  email_verified_at timestamptz
 );
 
 create unique index if not exists app_users_email_unique_idx on public.app_users (lower(email));
@@ -26,6 +27,36 @@ create table if not exists public.user_sessions (
 
 create index if not exists user_sessions_user_idx on public.user_sessions (user_id);
 create index if not exists user_sessions_expires_idx on public.user_sessions (expires_at);
+
+create table if not exists public.auth_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.app_users(id) on delete cascade,
+  purpose text not null check (purpose in ('email_verification', 'password_reset')),
+  token_hash text not null unique,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  used_at timestamptz
+);
+
+create index if not exists auth_tokens_user_purpose_idx on public.auth_tokens (user_id, purpose, created_at desc);
+create index if not exists auth_tokens_expires_idx on public.auth_tokens (expires_at);
+
+create table if not exists public.security_audit_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references public.app_users(id) on delete set null,
+  event text not null,
+  ip_address text,
+  user_agent text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists security_audit_events_user_created_idx on public.security_audit_events (user_id, created_at desc);
+
+create table if not exists public.schema_migrations (
+  name text primary key,
+  applied_at timestamptz not null default now()
+);
 
 create table if not exists public.strategies (
   id uuid primary key default gen_random_uuid(),
@@ -108,10 +139,13 @@ create table if not exists public.backtests (
   config jsonb not null default '{}'::jsonb,
   status text not null default 'queued',
   report_url text,
-  result jsonb
+  result jsonb,
+  worker_id text,
+  worker_claimed_at timestamptz
 );
 
 create index if not exists backtests_user_created_idx on public.backtests (user_id, created_at desc);
+create index if not exists backtests_worker_queue_idx on public.backtests (status, created_at);
 
 create table if not exists public.deployments (
   id uuid primary key default gen_random_uuid(),
@@ -125,12 +159,16 @@ create table if not exists public.deployments (
   account_type text not null,
   lot_size numeric not null,
   max_drawdown numeric not null,
-  status text not null default 'running',
+  status text not null default 'pending',
   command_path text,
-  config jsonb not null default '{}'::jsonb
+  config jsonb not null default '{}'::jsonb,
+  worker_id text,
+  worker_claimed_at timestamptz,
+  result jsonb
 );
 
 create index if not exists deployments_user_created_idx on public.deployments (user_id, created_at desc);
+create index if not exists deployments_worker_queue_idx on public.deployments (status, created_at);
 
 create table if not exists public.beta_applications (
   id uuid primary key default gen_random_uuid(),

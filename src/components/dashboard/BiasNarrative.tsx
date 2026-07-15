@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Info, RefreshCw, Sparkles } from "lucide-react";
+import { Info, Sparkles } from "lucide-react";
 import { AiService, AnalysisResult } from "@/services/aiService";
 import clsx from "clsx";
 

@@ -2,9 +2,10 @@
 
 import { useStore } from "@/store/useStore";
 import { motion } from "framer-motion";
-import { User, Mail, Shield, Bell, Palette, LogOut, Camera } from "lucide-react";
+import { User, Shield, Bell, Palette, LogOut, Camera } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import AccountSecurityPanel from "@/components/auth/AccountSecurityPanel";
 
 export default function ProfilePage() {
     const { user, balance, activeStrategies, logout, updateProfile, addNotification } = useStore();
@@ -197,12 +198,14 @@ export default function ProfilePage() {
                             </div>
                         )}
 
-                        {(activeTab === "security" || activeTab === "appearance") && (
+                        {activeTab === "security" && <AccountSecurityPanel />}
+
+                        {activeTab === "appearance" && (
                             <div className="flex flex-col items-center justify-center py-20 text-[#64748b]">
                                 <Shield size={64} className="mb-4 opacity-20" />
                                 <h4 className="text-lg font-bold text-white mb-2">Security Hub</h4>
                                 <p className="text-center max-w-sm">
-                                    Two-factor authentication and login history settings will be available in the next update.
+                                    Appearance preferences will be available in a future update.
                                 </p>
                             </div>
                         )}

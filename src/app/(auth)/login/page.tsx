@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Lock, Mail } from "lucide-react";
@@ -11,8 +11,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const { login } = useStore();
+
+  useEffect(() => {
+    const verification = new URLSearchParams(window.location.search).get("verification");
+    if (verification === "success") setNotice("Email verified. You can now sign in.");
+    if (verification === "invalid") setError("Verification link is invalid or expired.");
+  }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -77,6 +84,11 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
+            {notice && (
+              <div className="mb-6 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[13px] rounded-lg">
+                {notice}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
@@ -107,6 +119,10 @@ export default function LoginPage() {
                     required
                   />
                 </div>
+              </div>
+
+              <div className="text-right">
+                <Link href="/forgot-password" className="text-xs text-[#818cf8] hover:underline">Forgot password?</Link>
               </div>
 
               <button

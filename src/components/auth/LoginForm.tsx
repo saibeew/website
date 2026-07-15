@@ -16,8 +16,8 @@ const brokers = [
 export default function LoginForm() {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [email, setEmail] = useState("trader@beew.ai"); // Pre-filled
-    const [password, setPassword] = useState("Trade@2025");   // Pre-filled
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [broker, setBroker] = useState("mt5");
     const [error, setError] = useState<string | null>(null);
 

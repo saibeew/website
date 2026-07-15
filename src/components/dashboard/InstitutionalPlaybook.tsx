@@ -6,7 +6,15 @@ import { X, Target, TrendingUp, TrendingDown, BookOpen } from "lucide-react";
 interface PlaybookProps {
   isOpen: boolean;
   onClose: () => void;
-  event: any;
+  event: {
+    event: string;
+    bankForecast: string;
+    playbook: {
+      bias: string;
+      scenario: string;
+      targets: string[];
+    } | null;
+  } | null;
 }
 
 export default function InstitutionalPlaybook({ isOpen, onClose, event }: PlaybookProps) {

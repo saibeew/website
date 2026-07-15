@@ -2,18 +2,26 @@ import cron from "node-cron";
 import { getSql } from "../../postgres/client";
 import { publishToTelegram } from "./telegram";
 
-let cronJob: any = null;
+let cronJob: ReturnType<typeof cron.schedule> | null = null;
 
-export async function publishDuePosts(): Promise<number> {
+export async function publishDuePosts(userId?: string): Promise<number> {
   const sql = getSql();
 
   try {
     // 1. Fetch approved posts where scheduled_at is in the past
-    const duePosts = await sql`
-      SELECT id, title, caption, media_url, platform 
-      FROM scheduled_posts
-      WHERE status = 'approved' AND (scheduled_at IS NULL OR scheduled_at <= NOW())
-    `;
+    const duePosts = userId
+      ? await sql`
+          SELECT id, title, caption, media_url, platform
+          FROM scheduled_posts
+          WHERE user_id = ${userId}
+            AND status = 'approved'
+            AND (scheduled_at IS NULL OR scheduled_at <= NOW())
+        `
+      : await sql`
+          SELECT id, title, caption, media_url, platform
+          FROM scheduled_posts
+          WHERE status = 'approved' AND (scheduled_at IS NULL OR scheduled_at <= NOW())
+        `;
 
     if (duePosts.length === 0) return 0;
 
@@ -23,7 +31,7 @@ export async function publishDuePosts(): Promise<number> {
     for (const post of duePosts) {
       console.log(`[Publisher] Publishing post: ${post.title}`);
       
-      let publishRes: any = { success: false, externalId: "", error: "Unsupported platform" };
+      let publishRes: { success: boolean; externalId?: string; error?: string } = { success: false, error: "Unsupported platform" };
       
       if (post.platform === "telegram") {
         publishRes = await publishToTelegram({
@@ -37,7 +45,7 @@ export async function publishDuePosts(): Promise<number> {
           UPDATE scheduled_posts
           SET 
             status = 'published',
-            external_id = ${publishRes.externalId},
+            external_id = ${publishRes.externalId ?? null},
             published_at = NOW(),
             updated_at = NOW()
           WHERE id = ${post.id}

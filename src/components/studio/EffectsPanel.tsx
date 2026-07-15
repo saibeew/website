@@ -80,7 +80,7 @@ export default function EffectsPanel() {
     const outputPath = inputPath.replace(/\.[^.]+$/, `_effect_${selectedEffect}.mp4`);
 
     try {
-      const body: Record<string, any> = {
+      const body: Record<string, unknown> = {
         effect: selectedEffect,
         inputPath,
         outputPath,
@@ -130,8 +130,8 @@ export default function EffectsPanel() {
       } else {
         setActiveJob({ status: "failed", progress: 0, message: data.error || "Effect execution failed" });
       }
-    } catch (err: any) {
-      setActiveJob({ status: "failed", progress: 0, message: err.message || "Request failed" });
+    } catch (err) {
+      setActiveJob({ status: "failed", progress: 0, message: err instanceof Error ? err.message : "Request failed" });
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import styles from "./Topbar.module.css";
 import { Bell, Search, User } from "lucide-react";
-import NeonButton from "../ui/NeonButton";
 
 export default function Topbar() {
   return (

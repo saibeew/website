@@ -44,7 +44,7 @@ export default function StudioPage() {
       .catch(() => setAuthChecked(true)); // allow offline/degraded mode
   }, [router]);
 
-  const handleUseTrend = (trend: any) => {
+  const handleUseTrend = (trend: { title: string }) => {
     setPrefilledTrendTitle(trend.title);
     setActiveTab("quant");
   };

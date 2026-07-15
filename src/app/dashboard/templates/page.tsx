@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useStore } from "@/store/useStore";
+import { Strategy, useStore } from "@/store/useStore";
 import GlassCard from "@/components/ui/GlassCard";
 import NeonButton from "@/components/ui/NeonButton";
 import { cn } from "@/lib/utils";
@@ -13,21 +13,35 @@ import {
   Settings, 
   TrendingUp, 
   Cpu, 
-  FileText,
   Layers,
   Activity,
   Trash2
 } from "lucide-react";
 
-const TEMPLATES = [
-  { name: "BTC Momentum v3", roi: "+124%", risk: "High", pairs: "BTC/USDT" },
-  { name: "ETH Mean Reversion", roi: "+45%", risk: "Medium", pairs: "ETH/USDT" },
-  { name: "Stable Arbitrage", roi: "+12%", risk: "Low", pairs: "USDT/USDC" },
-  { name: "SOL Breakout", roi: "+89%", risk: "High", pairs: "SOL/USD" },
+const TEMPLATES: Strategy[] = [
+  { name: "BTC Momentum v3", roi: null, risk: "High", pairs: "BTC/USDT" },
+  { name: "ETH Mean Reversion", roi: null, risk: "Medium", pairs: "ETH/USDT" },
+  { name: "Stable Arbitrage", roi: null, risk: "Low", pairs: "USDT/USDC" },
+  { name: "SOL Breakout", roi: null, risk: "High", pairs: "SOL/USD" },
 ];
 
-import Link from "next/link";
-import DeploymentModal from "@/components/dashboard/DeploymentModal";
+import DeploymentModal, { DeploymentConfig } from "@/components/dashboard/DeploymentModal";
+
+interface BacktestRun {
+  id: string;
+  created_at: string;
+  symbol: string;
+  status: string;
+  config?: { eaName?: string };
+  worker_id?: string | null;
+}
+
+function backtestStatusClass(status: string) {
+  if (status === "completed") return "bg-green-500/20 text-green-400";
+  if (status === "processing" || status === "running") return "bg-blue-500/20 text-blue-400";
+  if (status === "failed") return "bg-red-500/20 text-red-400";
+  return "bg-amber-500/20 text-amber-300";
+}
 
 function detectPlatformFromFile(fileName: string): "mt4" | "mt5" | null {
   const extension = fileName.toLowerCase().split(".").pop();
@@ -52,7 +66,7 @@ export default function StrategyLab() {
     setIsDeployOpen(true);
   };
 
-  const handleClone = async (strategy: any) => {
+  const handleClone = async (strategy: Strategy) => {
     const success = await cloneStrategy(strategy);
     if (success) {
         addNotification({
@@ -65,7 +79,7 @@ export default function StrategyLab() {
 
   const { deployStrategy } = useStore();
 
-  const handleDeploy = async (config: any) => {
+  const handleDeploy = async (config: DeploymentConfig) => {
     console.log("Deploying with config:", config);
     try {
         const res = await fetch('/api/trade/deploy', {
@@ -97,7 +111,7 @@ export default function StrategyLab() {
   const [eaName, setEaName] = useState("MACD Sample");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [backtests, setBacktests] = useState<any[]>([]);
+  const [backtests, setBacktests] = useState<BacktestRun[]>([]);
   const [symbol, setSymbol] = useState("EURUSD");
   const [timeframe, setTimeframe] = useState("H1");
   const [dateFrom, setDateFrom] = useState("2023-01-01");
@@ -196,8 +210,8 @@ export default function StrategyLab() {
         alert(data.message);
         fetchHistory(); // Refresh list
 
-    } catch (err: any) {
-        setError(err.message);
+    } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Unable to queue the backtest.");
     } finally {
         setIsSimulating(false);
     }
@@ -271,27 +285,34 @@ export default function StrategyLab() {
                 </button>
 
                 {/* User Strategies */}
-                {strategies.map((strat: any, i: number) => (
+                {strategies.map((strat, i: number) => (
                     <GlassCard key={strat.id || i} className="flex flex-col h-full" hoverEffect={true} glowColor="primary">
                     <div className="flex justify-between items-start mb-6">
                         <div className={`px-2 py-1 rounded text-xs font-bold ${strat.risk === 'High' ? 'bg-red-500/20 text-red-500' : strat.risk === 'Medium' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'}`}>
                             {strat.risk} Risk
                         </div>
-                        <div className="text-green-500 font-bold">{strat.roi || "N/A"} ROI</div>
+                        <div className="text-text-muted text-xs font-bold uppercase">Saved strategy</div>
                     </div>
                     <h3 className="text-lg font-bold text-white mb-2">{strat.name}</h3>
                     <p className="text-text-muted text-xs mb-6">{strat.pairs || "No pairs specified"}</p>
                     <div className="mt-auto flex gap-2">
+                        <button
+                            onClick={() => { setEaName(strat.name); setActiveTab('backtest'); }}
+                            className="flex-1 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 border border-primary/20 text-primary text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                        >
+                            <Play size={14} /> Backtest
+                        </button>
                         <button 
                             onClick={() => handleOpenDeploy(strat.name)}
-                            className="flex-1 py-2 rounded-lg bg-surface/50 hover:bg-surface border border-white/10 text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                            className="p-2 rounded-lg bg-surface/50 hover:bg-surface border border-white/10 text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                            title="Queue deployment"
                         >
-                            <Play size={14} /> Run
+                            <Upload size={14} />
                         </button>
                         <button 
                             onClick={() => {
                                 if (confirm(`Are you sure you want to delete ${strat.name}?`)) {
-                                    deleteStrategy(strat.id);
+                                    if (strat.id) deleteStrategy(strat.id);
                                 }
                             }}
                             className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 transition-colors"
@@ -310,7 +331,7 @@ export default function StrategyLab() {
                         <div className={`px-2 py-1 rounded text-xs font-bold ${temp.risk === 'High' ? 'bg-red-500/20 text-red-500' : temp.risk === 'Medium' ? 'bg-yellow-500/20 text-yellow-500' : 'bg-green-500/20 text-green-500'}`}>
                             {temp.risk} Risk
                         </div>
-                        <div className="text-green-500 font-bold">{temp.roi} ROI</div>
+                        <div className="text-text-muted text-xs font-bold uppercase">Unvalidated template</div>
                     </div>
                     <h3 className="text-lg font-bold text-white mb-2">{temp.name}</h3>
                     <p className="text-text-muted text-xs mb-6">{temp.pairs}</p>
@@ -381,7 +402,7 @@ export default function StrategyLab() {
                                 {eaName === "MACD Sample" ? "Upload Expert Advisor (.ex4, .mq4, .ex5, .mq5)" : `Selected: ${eaName}`}
                             </span>
                         </button>
-                        <p className="text-[10px] text-center text-text-muted mt-2 opacity-60">*Uploaded EA will be detected and installed into the matching MT4 or MT5 Experts folder.</p>
+                        <p className="text-[10px] text-center text-text-muted mt-2 opacity-80">EA files are validated here, then require private object storage and the isolated MetaTrader worker.</p>
                     </div>
                 </div>
             </div>
@@ -392,9 +413,9 @@ export default function StrategyLab() {
                     <h3 className="font-semibold text-white mb-4">Actions</h3>
                     {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs">{error}</div>}
                     <button onClick={handleStartBacktest} disabled={isSimulating} className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 disabled:opacity-50 text-black font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">
-                        {isSimulating ? (<><div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /><span>Launching...</span></>) : (<><Play size={20} fill="currentColor" /><span>Start Visual Backtest</span></>)}
+                        {isSimulating ? (<><div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /><span>Queueing...</span></>) : (<><Play size={20} fill="currentColor" /><span>Queue Backtest</span></>)}
                     </button>
-                    <p className="text-[10px] text-center text-text-muted mt-2 opacity-60">*Will open the matching MetaTrader terminal and run the EA on the selected chart.</p>
+                    <p className="text-[10px] text-center text-amber-300/80 mt-2">Requires the private MetaTrader worker. Without it, the run remains queued and no result is fabricated.</p>
                 </div>
 
                 <div className="bg-surface-light border border-white/5 rounded-2xl p-6 space-y-4">
@@ -403,19 +424,19 @@ export default function StrategyLab() {
                         <p className="text-sm text-text-muted">Loading backtest history...</p>
                     ) : backtests.length === 0 ? (<p className="text-sm text-text-muted">No runs yet.</p>) : (
                         <div className="space-y-3">
-                            {backtests.map((run: any) => (
+                            {backtests.map((run) => (
                                 <div key={run.id} className="p-3 bg-white/5 rounded-lg border border-white/5 flex justify-between items-center">
                                     <div><div className="text-sm font-medium text-white">{run.config?.eaName || "Unknown"}</div><div className="text-xs text-text-muted">{new Date(run.created_at).toLocaleDateString()} • {run.symbol}</div></div>
-                                    <div className={`text-xs px-2 py-1 rounded ${run.status === 'running' ? 'bg-blue-500/20 text-blue-400' : 'bg-green-500/20 text-green-400'}`}>{run.status}</div>
+                                    <div className={`text-xs px-2 py-1 rounded ${backtestStatusClass(run.status)}`}>{run.status}</div>
                                 </div>
                             ))}
                         </div>
                     )}
-                    <button className="w-full mt-2 text-xs text-primary hover:text-primary/80 transition-colors flex items-center justify-center gap-1"><FileText size={12} /> View Reports</button>
+                    <p className="text-[11px] text-text-muted">Completed reports appear here only after a verified worker acknowledgement.</p>
                 </div>
 
                 <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-5">
-                    <div className="flex gap-3"><Cpu className="text-blue-400 shrink-0" size={20} /><div><h4 className="text-sm font-medium text-blue-100">Cloud Agents Available</h4><p className="text-xs text-blue-200/60 mt-1">Your enterprise plan includes 10 dedicated cloud agents.</p></div></div>
+                    <div className="flex gap-3"><Cpu className="text-blue-400 shrink-0" size={20} /><div><h4 className="text-sm font-medium text-blue-100">Worker status</h4><p className="text-xs text-blue-200/60 mt-1">No MetaTrader worker is bundled with the web preview. Configure the private Windows worker to process queued jobs.</p></div></div>
                 </div>
             </div>
          </div>

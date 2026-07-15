@@ -55,7 +55,7 @@ export async function reviewPost(
       reviewer_id = ${reviewerId},
       review_note = ${note || null},
       updated_at = NOW()
-    WHERE id = ${postId}
+    WHERE id = ${postId} AND user_id = ${reviewerId}
     RETURNING *
   `;
   return post;

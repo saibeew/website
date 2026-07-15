@@ -6,33 +6,32 @@ import GlassCard from "../ui/GlassCard";
 import styles from "./WatchlistWidget.module.css";
 import { TrendingUp, TrendingDown, MoreHorizontal } from "lucide-react";
 
-// Mock Initial Data
 const INITIAL_DATA = [
-  { symbol: "BTC", name: "Bitcoin", price: 98450.00, change: 2.4, history: [40, 50, 45, 60, 55, 70, 80] },
-  { symbol: "ETH", name: "Ethereum", price: 3850.50, change: 1.2, history: [30, 35, 32, 40, 42, 48, 50] },
-  { symbol: "SOL", name: "Solana", price: 145.20, change: -0.8, history: [60, 55, 58, 52, 50, 48, 45] },
-  { symbol: "NVDA", name: "Nvidia", price: 1150.00, change: 3.5, history: [20, 25, 30, 40, 60, 80, 100] },
-  { symbol: "TSLA", name: "Tesla", price: 175.40, change: -1.5, history: [80, 75, 70, 65, 60, 55, 50] },
+  { symbol: "BTC", name: "Bitcoin", price: 0, change: 0, history: [] as number[] },
+  { symbol: "ETH", name: "Ethereum", price: 0, change: 0, history: [] as number[] },
+  { symbol: "SOL", name: "Solana", price: 0, change: 0, history: [] as number[] },
 ];
 
 export default function WatchlistWidget() {
   const [assets, setAssets] = useState(INITIAL_DATA);
 
-  // Simulate Live Ticks
   useEffect(() => {
-    const interval = setInterval(() => {
-      setAssets(prev => prev.map(asset => {
-        const volatility = Math.random() * 0.002; // 0.2% movement
-        const direction = Math.random() > 0.5 ? 1 : -1;
-        const newPrice = asset.price * (1 + volatility * direction);
-        
-        return {
-          ...asset,
-          price: newPrice,
-        };
+    const update = async () => {
+      const updates = await Promise.all(INITIAL_DATA.map(async (asset) => {
+        const response = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${asset.symbol}USDT`, { cache: "no-store" });
+        if (!response.ok) throw new Error("Market feed unavailable");
+        const data = await response.json();
+        return { symbol: asset.symbol, price: Number(data.lastPrice), change: Number(data.priceChangePercent) };
+      })).catch(() => []);
+      if (updates.length === 0) return;
+      setAssets((current) => current.map((asset) => {
+        const update = updates.find((item) => item.symbol === asset.symbol);
+        if (!update) return asset;
+        return { ...asset, price: update.price, change: update.change, history: [...asset.history, update.price].slice(-20) };
       }));
-    }, 2000); // Update every 2 seconds
-
+    };
+    void update();
+    const interval = setInterval(update, 15_000);
     return () => clearInterval(interval);
   }, []);
 
@@ -48,7 +47,7 @@ export default function WatchlistWidget() {
           <span>Asset</span>
           <span className={styles.alignRight}>Price</span>
           <span className={styles.alignRight}>24h Change</span>
-          <span className={styles.alignRight}>7d Trend</span>
+          <span className={styles.alignRight}>Live Updates</span>
         </div>
 
         <AnimatePresence>
@@ -67,7 +66,7 @@ export default function WatchlistWidget() {
               </div>
 
               <div className={styles.priceCell}>
-                 <PriceDisplay price={asset.price} />
+                 {asset.price > 0 ? <PriceDisplay price={asset.price} /> : <span className={styles.price}>Unavailable</span>}
               </div>
 
               <div className={`${styles.changeCell} ${asset.change >= 0 ? styles.positive : styles.negative}`}>
@@ -106,9 +105,10 @@ function PriceDisplay({ price }: { price: number }) {
 
 // Simple Sparkline chart
 function Sparkline({ data, color }: { data: number[], color: string }) {
+  if (data.length < 2) return <span className="text-text-muted">—</span>;
   const min = Math.min(...data);
   const max = Math.max(...data);
-  const range = max - min;
+  const range = max - min || 1;
   
   const points = data.map((d, i) => {
     const x = (i / (data.length - 1)) * 100;
